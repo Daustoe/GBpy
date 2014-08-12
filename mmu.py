@@ -1,5 +1,7 @@
 """
 Memory management unit for the GameBoy emulator.
+Note that the Video RAM (GRAPHICS RAM) is handled by the gpu, not the mmu. This was not the case really in the GameBoy,
+but it will simplify the organization of this program.
 """
 __author__ = 'cjpowell'
 
@@ -30,6 +32,7 @@ class MMU(object):
         self.wram = []
         self.eram = []
         self.zram = []
+        self.mmio = []
         self.reset()
 
     def reset(self):
@@ -41,6 +44,7 @@ class MMU(object):
         self.wram = [0] * 0x2000
         self.eram = [0] * 0x8000
         self.zram = [0] * 0x80
+        self.mmio = [0] * 0x80
 
     def load(self, rom_path):
         """
@@ -48,18 +52,49 @@ class MMU(object):
         :param rom_path:
         """
         rom = open(rom_path, "rb").read()
-        for index in range(len(rom)):
-            self.rom.append(ord(rom[index]))
+        self.rom = [ord(index) for index in rom]
 
     def read_byte(self, addr):
         """
         Reads a single 8 bit value from the address specified.
-
-        Note: We need to parse the address requested in order to read back the correct piece of memory.
         :param addr:
         :return:
         """
-        return 0
+        if addr >= 0xff80:
+            # Zero page RAM
+            return self.zram[addr & 0x7f]
+        elif addr >= 0xff00:
+            # MMIO
+            return self.mmio[addr & 0xff]
+        elif addr >= 0xfea0:
+            # unused space
+            return 0
+        elif addr >= 0xfe00:
+            # Object Attribute Memory (OAM) in gpu
+            # TODO implement this in gpu: return self.gpu.oam[addr & 0xff]
+            pass
+        elif addr >= 0xe000:
+            # Working RAM shadow (read wram anyway)
+            return self.wram[addr & 0x1fff]
+        elif addr >= 0xc000:
+            # Working RAM main
+            return self.wram[addr & 0x1fff]
+        elif addr >= 0xa000:
+            # External RAM
+            #TODO need to implement memory bank controllers for this,
+            pass
+        elif addr >= 0x8000:
+            # Graphics RAM
+            # TODO implement this in gpu: return
+            # return self.gpu.vram[addr & 0x1fff]
+            pass
+        elif addr >= 0x4000:
+            # ROM Bank 1
+            # TODO implement memory bank controllers to enable this
+            pass
+        else:
+            # ROM Bank 0
+            return self.rom[addr]
 
     def read_word(self, addr):
         """
@@ -68,3 +103,5 @@ class MMU(object):
         :return:
         """
         return self.read_byte(addr) + (self.read_byte(addr + 1) << 8)
+
+    # TODO implement write functions
