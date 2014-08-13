@@ -93,6 +93,8 @@ class Cpu(object):
                         self._op_f8, self._op_f9, self._op_fa, self._op_fb,
                         self._op_fc, self._op_fd, self._op_fe, self._op_ff]
 
+        self.opcodes = {0x0: 'temp'}
+
         self.ext_opcodes = []
 
     def _op_00(self):
