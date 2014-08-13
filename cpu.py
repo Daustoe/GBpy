@@ -93,6 +93,8 @@ class Cpu(object):
                         self._op_f8, self._op_f9, self._op_fa, self._op_fb,
                         self._op_fc, self._op_fd, self._op_fe, self._op_ff]
 
+        self.ext_opcodes = []
+
     def _op_00(self):
         # NOP
         self.m = 1
@@ -789,305 +791,450 @@ class Cpu(object):
         # ADC A, A
         pass
 
-    def _subr_b(self):
+    def _op_90(self):
+        # SUB B
         pass
 
-    def _subr_c(self):
+    def _op_91(self):
+        # SUB C
         pass
 
-    def _subr_d(self):
+    def _op_92(self):
+        # SUB D
         pass
 
-    def _subr_e(self):
+    def _op_93(self):
+        # SUB E
         pass
 
-    def _subr_h(self):
+    def _op_94(self):
+        # SUB H
         pass
 
-    def _subr_l(self):
+    def _op_95(self):
+        # SUB L
         pass
 
-    def _subhl(self):
+    def _op_96(self):
+        # SUB (HL)
         pass
 
-    def _subr_a(self):
+    def _op_97(self):
+        # SUB A
         pass
 
-    def _sbcr_b(self):
+    def _op_98(self):
+        # SBC A, B
         pass
 
-    def _sbcr_c(self):
+    def _op_99(self):
+        # SBC A, C
         pass
 
-    def _sbcr_d(self):
+    def _op_9a(self):
+        # SBC A, D
         pass
 
-    def _sbcr_e(self):
+    def _op_9b(self):
+        # SBC A, E
         pass
 
-    def _sbcr_h(self):
+    def _op_9c(self):
+        # SBC A, H
         pass
 
-    def _sbcr_l(self):
+    def _op_9d(self):
+        # SBC A, L
         pass
 
-    def _sbchl(self):
+    def _op_9e(self):
+        # SBC A, (HL)
         pass
 
-    def _sbcr_a(self):
+    def _op_9f(self):
+        # SBC A, A
         pass
 
-    def _andr_b(self):
+    def _op_a0(self):
+        # AND B
         pass
 
-    def _andr_c(self):
+    def _op_a1(self):
+        # AND C
         pass
 
-    def _andr_d(self):
+    def _op_a2(self):
+        # AND D
         pass
 
-    def _andr_e(self):
+    def _op_a3(self):
+        # AND E
         pass
 
-    def _andr_h(self):
+    def _op_a4(self):
+        # AND H
         pass
 
-    def _andr_l(self):
+    def _op_a5(self):
+        # AND L
         pass
 
-    def _andhl(self):
+    def _op_a6(self):
+        # AND (HL)
         pass
 
-    def _andr_a(self):
+    def _op_a7(self):
+        # AND A
         pass
 
-    def _xorr_b(self):
+    def _op_a8(self):
+        # XOR B
         pass
 
-    def _xorr_c(self):
+    def _op_a9(self):
+        # XOR C
         pass
 
-    def _xorr_d(self):
+    def _op_aa(self):
+        # XOR D
         pass
 
-    def _xorr_e(self):
+    def _op_ab(self):
+        # XOR E
         pass
 
-    def _xorr_h(self):
+    def _op_ac(self):
+        # XOR H
         pass
 
-    def _xorr_l(self):
+    def _op_ad(self):
+        # XOR L
         pass
 
-    def _xorhl(self):
+    def _op_ae(self):
+        # XOR (HL)
         pass
 
-    def _xorr_a(self):
+    def _op_af(self):
+        # XOR A
         pass
 
-    def _orr_b(self):
+    def _op_b0(self):
+        # OR B
         pass
 
-    def _orr_c(self):
+    def _op_b1(self):
+        # OR C
         pass
 
-    def _orr_d(self):
+    def _op_b2(self):
+        # OR D
         pass
 
-    def _orr_e(self):
+    def _op_b3(self):
+        # OR E
         pass
 
-    def _orr_h(self):
+    def _op_b4(self):
+        # OR H
         pass
 
-    def _orr_l(self):
+    def _op_b5(self):
+        # OR L
         pass
 
-    def _orhl(self):
+    def _op_b6(self):
+        # OR (HL)
         pass
 
-    def _orr_a(self):
+    def _op_b7(self):
+        # OR A
         pass
 
-    def _cpr_b(self):
+    def _op_b8(self):
+        # CP B
         pass
 
-    def _cpr_c(self):
+    def _op_b9(self):
+        # CP C
         pass
 
-    def _cpr_d(self):
+    def _op_ba(self):
+        # CP D
         pass
 
-    def _cpr_e(self):
+    def _op_bb(self):
+        # CP E
         pass
 
-    def _cpr_h(self):
+    def _op_bc(self):
+        # CP H
         pass
 
-    def _cpr_l(self):
+    def _op_bd(self):
+        # CP L
         pass
 
-    def _cphl(self):
+    def _op_be(self):
+        # CP (HL)
         pass
 
-    def _cpr_a(self):
+    def _op_bf(self):
+        # CP A
         pass
 
-    def _retnz(self):
+    def _op_c0(self):
+        # RET NZ
         pass
 
-    def _popbc(self):
+    def _op_c1(self):
+        # POP BC
         pass
 
-    def _jpnznn(self):
+    def _op_c2(self):
+        # JP NZ, a16
         pass
 
-    def _jpnn(self):
+    def _op_c3(self):
+        # JP a16
         pass
 
-    def _callnznn(self):
+    def _op_c4(self):
+        # CALL NZ, a16
         pass
 
-    def _pushbc(self):
+    def _op_c5(self):
+        # PUSH BC
         pass
 
-    def _addn(self):
+    def _op_c6(self):
+        # ADD A, d8
         pass
 
-    def _rst00(self):
+    def _op_c7(self):
+        # RST 00H
         pass
 
-    def _retz(self):
+    def _op_c8(self):
+        # RET Z
         pass
 
-    def _ret(self):
+    def _op_c9(self):
+        # RET
         pass
 
-    def _jpznn(self):
+    def _op_ca(self):
+        # JP Z, a16
         pass
 
-    def _mapcb(self):
+    def _op_cb(self):
+        # map to CB table
         pass
 
-    def _callznn(self):
+    def _op_cc(self):
+        # CALL Z, a16
         pass
 
-    def _callnn(self):
+    def _op_cd(self):
+        # CALL a16
         pass
 
-    def _adcn(self):
+    def _op_ce(self):
+        # ADC A, d8
         pass
 
-    def _rst08(self):
+    def _op_cf(self):
+        # RST 08H
         pass
 
-    def _retnc(self):
+    def _op_d0(self):
+        # RET NC
         pass
 
-    def _popde(self):
+    def _op_d1(self):
+        # POP DE
         pass
 
-    def _jpncnn(self):
+    def _op_d2(self):
+        # JP NC, a16
         pass
 
-    def _xx(self):
+    def _op_d3(self):
+        # NOT IMP
         pass
 
-    def _callncnn(self):
+    def _op_d4(self):
+        # CALL NC, a16
         pass
 
-    def _pushde(self):
+    def _op_d5(self):
+        # PUSH DE
         pass
 
-    def _subn(self):
+    def _op_d6(self):
+        # SUB d8
         pass
 
-    def _rst10(self):
+    def _op_d7(self):
+        # RST 10H
         pass
 
-    def _retc(self):
+    def _op_d8(self):
+        # RET C
         pass
 
-    def _reti(self):
+    def _op_d9(self):
+        # RETI
         pass
 
-    def _jpcnn(self):
+    def _op_da(self):
+        # JP C, a16
         pass
 
-    def _callcnn(self):
+    def _op_db(self):
+        # NOT IMP
         pass
 
-    def _sbcn(self):
+    def _op_dc(self):
+        # CALL C, a16
         pass
 
-    def _rst18(self):
+    def _op_dd(self):
+        # NOT IMP
         pass
 
-    def _ldiona(self):
+    def _op_de(self):
+        # SBC A, d8
         pass
 
-    def _pophl(self):
+    def _op_df(self):
+        # RST 18H
         pass
 
-    def _ldioca(self):
+    def _op_e0(self):
+        # LDH (a8), A
         pass
 
-    def _pushhl(self):
+    def _op_e1(self):
+        # POP HL
         pass
 
-    def _andn(self):
+    def _op_e2(self):
+        # LD (C), A
         pass
 
-    def _rst20(self):
+    def _op_e3(self):
+        # NOT IMP
         pass
 
-    def _addspn(self):
+    def _op_e4(self):
+        # NOT IMP
         pass
 
-    def _jphl(self):
+    def _op_e5(self):
+        # PUSH HL
         pass
 
-    def _ldmma(self):
+    def _op_e6(self):
+        # AND d8
         pass
 
-    def _xorn(self):
+    def _op_e7(self):
+        # RST 20H
         pass
 
-    def _rst28(self):
+    def _op_e8(self):
+        # ADD SP, r8
         pass
 
-    def _ldaion(self):
+    def _op_e9(self):
+        # JP (HL)
         pass
 
-    def _popaf(self):
+    def _op_ea(self):
+        # LD (a16), A
         pass
 
-    def _ldaioc(self):
+    def _op_eb(self):
+        # NOT IMP
         pass
 
-    def _di(self):
+    def _op_ec(self):
+        # NOT IMP
         pass
 
-    def _pushaf(self):
+    def _op_ed(self):
+        # NOT IMP
         pass
 
-    def _orn(self):
+    def _op_ee(self):
+        # XOR d8
         pass
 
-    def _rst30(self):
+    def _op_ef(self):
+        # RST 28H
         pass
 
-    def _ldhlspn(self):
+    def _op_f0(self):
+        # LDH A, (a8)
         pass
 
-    def _ldamm(self):
+    def _op_f1(self):
+        # POP AF
         pass
 
-    def _ei(self):
+    def _op_f2(self):
+        # LD A, (C)
         pass
 
-    def _cpn(self):
+    def _op_f3(self):
+        # DI
         pass
 
-    def _rst38(self):
+    def _op_f4(self):
+        # NOT IMP
+        pass
+
+    def _op_f5(self):
+        # PUSH AF
+        pass
+
+    def _op_f6(self):
+        # OR d8
+        pass
+
+    def _op_f7(self):
+        # RST 30H
+        pass
+
+    def _op_f8(self):
+        # LD HL, SP+r8
+        pass
+
+    def _op_f9(self):
+        # LD SP, HL
+        pass
+
+    def _op_fa(self):
+        # LD A, (a16)
+        pass
+
+    def _op_fb(self):
+        # EI
+        pass
+
+    def _op_fc(self):
+        # NOT IMP
+        pass
+
+    def _op_fd(self):
+        # NOT IMP
+        pass
+
+    def _op_fe(self):
+        # CP d8
+        pass
+
+    def _op_ff(self):
+        # RST 38H
         pass
