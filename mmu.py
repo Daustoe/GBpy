@@ -2,6 +2,9 @@
 Memory management unit for the GameBoy emulator.
 Note that the Video RAM (GRAPHICS RAM) is handled by the gpu, not the mmu. This was not the case really in the GameBoy,
 but it will simplify the organization of this program.
+
+From a technical standpoint, the only four operations that the GameBoy CPU cares about are readWord, readByte,
+writeWord, and writeByte. With these four functions the CPU can run it's full opcode list.
 """
 __author__ = 'cjpowell'
 
@@ -52,7 +55,21 @@ class MMU(object):
         :param rom_path:
         """
         rom = open(rom_path, "rb").read()
-        self.rom = [ord(index) for index in rom]
+        self.rom = [index for index in range(0, len(rom))]
+
+    def write_byte(self, address, value):
+        pass
+
+    def write_word(self, address, value):
+        """
+        Writes a word (16 bits) value to the address specified.
+        :param address:
+        :param value:
+        :return:
+        """
+        # need to shift the values here, not sure what order to shift them in.
+        self.write_byte(address, value)
+        self.write_byte(address + 1, value)
 
     def read_byte(self, addr):
         """

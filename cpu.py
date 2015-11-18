@@ -1,8 +1,5 @@
-"""
-GameBoy cpu module
-"""
-__author__ = 'cjpowell'
-from mmu import MMU
+from gbpy.mmu import MMU
+__author__ = 'Clayton Powell'
 
 
 class Cpu(object):
@@ -11,9 +8,11 @@ class Cpu(object):
     """
 
     def __init__(self):
-        self.pc = 0
-        self.sp = 0
-        self.mmu = MMU()
+        self.pc = 0  # Program Counter
+        self.sp = 0  # Stack Pointer
+        self.mmu = MMU()  # Memory Management Unit
+
+        # Registers
         self.a = 0
         self.b = 0
         self.c = 0
@@ -21,13 +20,19 @@ class Cpu(object):
         self.e = 0
         self.h = 0
         self.l = 0
+
+        # clock values
         self.m = 0
         self.t = 0
+        self.clock = {'m': self.m, 't': self.t}
+
+        # we keep the flags separate instead of in the f register. No need to complicate this process.
         self.zero_flag = 0
         self.sub_flag = 0
         self.hc_flag = 0
         self.carry_flag = 0
-        self.clock = {'m': 0, 't': 0}
+
+        # Opcode map
         self.opcodes = [self._op_00, self._op_01, self._op_02, self._op_03,
                         self._op_04, self._op_05, self._op_06, self._op_07,
                         self._op_08, self._op_09, self._op_0a, self._op_0b,
@@ -92,9 +97,6 @@ class Cpu(object):
                         self._op_f4, self._op_f5, self._op_f6, self._op_f7,
                         self._op_f8, self._op_f9, self._op_fa, self._op_fb,
                         self._op_fc, self._op_fd, self._op_fe, self._op_ff]
-
-        self.opcodes = {0x0: 'temp'}
-
         self.ext_opcodes = []
 
     def _op_00(self):
