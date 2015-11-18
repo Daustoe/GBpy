@@ -6,7 +6,7 @@ but it will simplify the organization of this program.
 From a technical standpoint, the only four operations that the GameBoy CPU cares about are readWord, readByte,
 writeWord, and writeByte. With these four functions the CPU can run it's full opcode list.
 """
-__author__ = 'cjpowell'
+__author__ = 'Clayton Powell'
 
 
 class MMU(object):

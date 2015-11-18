@@ -1,4 +1,4 @@
-from gbpy.mmu import MMU
+from mmu import MMU
 __author__ = 'Clayton Powell'
 
 
@@ -9,6 +9,7 @@ class Cpu(object):
 
     def __init__(self):
         self.pc = 0  # Program Counter
+        self.previous_pc = 0
         self.sp = 0  # Stack Pointer
         self.mmu = MMU()  # Memory Management Unit
 
@@ -98,6 +99,18 @@ class Cpu(object):
                         self._op_f8, self._op_f9, self._op_fa, self._op_fb,
                         self._op_fc, self._op_fd, self._op_fe, self._op_ff]
         self.ext_opcodes = []
+
+    def cycle(self):
+        """
+        Single cpu cycle. Reads opcode at program counter in memory. Executes that opcode.
+        """
+        self.previous_pc = self.pc
+        self.opcode = self.mmu.read_byte(self.pc)
+        self.pc += 1
+        self.opcodes[self.opcode]()
+        self.pc &= 0xffff
+        self.clock['m'] = self.m
+
 
     def _op_00(self):
         # NOP
