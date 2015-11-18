@@ -36,6 +36,7 @@ class MMU(object):
         self.eram = []
         self.zram = []
         self.mmio = []
+        self.interrupt_enable = 0
         self.reset()
 
     def reset(self):
@@ -48,6 +49,7 @@ class MMU(object):
         self.eram = [0] * 0x8000
         self.zram = [0] * 0x80
         self.mmio = [0] * 0x80
+        self.interrupt_enable = 0
 
     def load(self, rom_path):
         """
@@ -57,19 +59,59 @@ class MMU(object):
         rom = open(rom_path, "rb").read()
         self.rom = [index for index in range(0, len(rom))]
 
-    def write_byte(self, address, value):
-        pass
-
-    def write_word(self, address, value):
+    def write_byte(self, addr, value):
         """
-        Writes a word (16 bits) value to the address specified.
-        :param address:
+        Writes a byte (8 bit) value to the address specified.
+        :param addr:
         :param value:
-        :return:
         """
-        # need to shift the values here, not sure what order to shift them in.
-        self.write_byte(address, value)
-        self.write_byte(address + 1, value)
+        if addr >= 0xff80:
+            # Zero page RAM
+            if addr == 0xffff:
+                self.interrupt_enable = value
+            else:
+                self.zram[addr & 0x7f] = value
+        elif addr >= 0xff00:
+            # MMIO is a funny thing, needs looking into.
+            pass
+        elif addr >= 0xfea0:
+            # unused space
+            pass
+        elif addr >= 0xfe00:
+            # Object Attribute Memory (OAM) in gpu
+            # TODO implement this in gpu: return self.gpu.oam[addr & 0xff]
+            pass
+        elif addr >= 0xe000:
+            # Working RAM shadow (read wram anyway)
+            self.wram[addr & 0x1fff] = value
+        elif addr >= 0xc000:
+            # Working RAM main
+            self.wram[addr & 0x1fff] = value
+        elif addr >= 0xa000:
+            # External RAM
+            #TODO need to implement memory bank controllers for this,
+            pass
+        elif addr >= 0x8000:
+            # Graphics RAM
+            # TODO implement this in gpu: return
+            # return self.gpu.vram[addr & 0x1fff]
+            pass
+        elif addr >= 0x4000:
+            # ROM Bank 1
+            # TODO implement memory bank controllers to enable this
+            pass
+        else:
+            # ROM Bank 0
+            self.rom[addr] = value
+
+    def write_word(self, addr, value):
+        """
+        Writes a word (16 bit) value to the address specified.
+        :param addr:
+        :param value:
+        """
+        self.write_byte(addr, value & 0xff)
+        self.write_byte(addr + 1, value >> 8)
 
     def read_byte(self, addr):
         """
@@ -79,7 +121,10 @@ class MMU(object):
         """
         if addr >= 0xff80:
             # Zero page RAM
-            return self.zram[addr & 0x7f]
+            if addr == 0xffff:
+                return self.interrupt_enable
+            else:
+                return self.zram[addr & 0x7f]
         elif addr >= 0xff00:
             # MMIO
             return self.mmio[addr & 0xff]
