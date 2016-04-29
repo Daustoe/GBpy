@@ -1,4 +1,4 @@
-from mmu import MMU
+from gbpy.mmu import MMU
 __author__ = 'Clayton Powell'
 
 
@@ -242,7 +242,8 @@ class Cpu(object):
 
     def _op_12(self):
         # LD (DE), A
-        pass
+        self.mmu.write_byte((self.d << 8) + self.e, self.a)
+        self.m = 2
 
     def _op_13(self):
         # INC DE
@@ -291,7 +292,8 @@ class Cpu(object):
 
     def _op_1a(self):
         # LD A, (DE)
-        pass
+        self.a = self.mmu.read_byte((self.d << 8) | self.e)
+        self.m = 2
 
     def _op_1b(self):
         # DEC DE
@@ -448,14 +450,18 @@ class Cpu(object):
 
     def _op_34(self):
         # INC (HL)
+        # Increment value stored at memory address (HL)
+        self.mmu.read_byte()
         pass
 
     def _op_35(self):
         # DEC (HL)
+        # Decrement value stored at memory address (HL)
         pass
 
     def _op_36(self):
         # LD (HL), d8
+        # Load byte value into memory address (HL)
         pass
 
     def _op_37(self):
@@ -616,7 +622,7 @@ class Cpu(object):
 
     def _op_56(self):
         # LD D, (HL)
-        pass
+        self.d = self.mmu.read_byte(self.h << 8 + self.l)
 
     def _op_57(self):
         # LD D, A
@@ -654,7 +660,7 @@ class Cpu(object):
 
     def _op_5e(self):
         # LD E, (HL)
-        pass
+        self.e = self.mmu.read_byte(self.h << 8 + self.l)
 
     def _op_5f(self):
         # LD E, A
@@ -692,7 +698,7 @@ class Cpu(object):
 
     def _op_66(self):
         # LD H, (HL)
-        pass
+        self.h = self.mmu.read_byte(self.h << 8 + self.l)
 
     def _op_67(self):
         # LD H, A
@@ -817,7 +823,6 @@ class Cpu(object):
         if self.a == 0:
             self.zero_flag |= 1
         self.m = 1
-
 
     def _op_81(self):
         # ADD A, C
@@ -1087,7 +1092,11 @@ class Cpu(object):
 
     def _op_a6(self):
         # AND (HL)
-        pass
+        self.a &= self.mmu.read_byte((self.h << 8) + self.l)
+        self.a &= 255
+        if self.a == 0:
+            self.zero_flag |= 1
+        self.m = 2
 
     def _op_a7(self):
         # AND A
@@ -1145,7 +1154,11 @@ class Cpu(object):
 
     def _op_ae(self):
         # XOR (HL)
-        pass
+        self.a ^= self.mmu.read_byte((self.h << 8) + self.l)
+        self.a &= 0xff
+        if self.a == 0:
+            self.zero_flag |= 1
+        self.m = 2
 
     def _op_af(self):
         # XOR A
