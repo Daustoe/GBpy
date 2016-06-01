@@ -435,7 +435,16 @@ class Cpu(object):
         :return:
         """
         # TODO: Implement
-        pass
+        if (self.a & 0xf) < (value & 0xf):
+            self.hc_flag = 1
+        if self.a < value > 0xff:
+            self.carry_flag = 1
+        self.a -= value
+        self.a &= 0xff
+        if self.a == 0:
+            self.zero_flag = 1
+        self.sub_flag = 1
+        self.m = 1
 
     def _sbc(self, value):
         """
@@ -1317,86 +1326,35 @@ class Cpu(object):
 
     def _op_90(self):
         # SUB A, B
-        self.sub_flag = 1
-        if (self.a & 0xf) < (self.b & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.b > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a - self.b) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._sub(self.b)
 
     def _op_91(self):
         # SUB A, C
-        self.sub_flag = 1
-        if (self.a & 0xf) < (self.c & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.c > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a - self.c) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._sub(self.c)
 
     def _op_92(self):
         # SUB A, D
-        self.sub_flag = 1
-        if (self.a & 0xf) < (self.d & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.d > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a - self.d) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._sub(self.d)
 
     def _op_93(self):
         # SUB A, E
-        self.sub_flag = 1
-        if (self.a & 0xf) < (self.e & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.e > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a - self.e) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._sub(self.e)
 
     def _op_94(self):
         # SUB A, H
-        self.sub_flag = 1
-        if (self.a & 0xf) < (self.h & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.h > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a - self.h) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._sub(self.h)
 
     def _op_95(self):
         # SUB A, L
-        self.sub_flag = 1
-        if (self.a & 0xf) < (self.l & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.l > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a - self.l) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._sub(self.l)
 
     def _op_96(self):
         # SUB A, (HL)
-        pass
+        self._sub(self.mmu.read_byte(self.h << 8 + self.l))
 
     def _op_97(self):
         # SUB A, A
-        self.sub_flag = 1
-        self.a = 0
-        self.zero_flag |= 1
-        self.m = 1
+        self._sub(self.a)
 
     def _op_98(self):
         # SBC A, B

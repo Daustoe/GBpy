@@ -72,6 +72,50 @@ class TestArithmeticOpcodes(unittest.TestCase):
         self.assertEqual(self.cpu.a, 0)
         self.assertListEqual([1, 0, 1, 1], self.cpu.flags())
 
+    def test_indirect_add(self):
+        self.cpu._op_86()
+        self.cpu._op_c6()
+        self.assertTrue(False)
+
+    def test_indirect_adc(self):
+        self.cpu._op_8e()
+        self.cpu._op_ce()
+        self.assertTrue(False)
+
+    def test_direct_sub(self):
+        self.cpu._op_90()
+        self.assertTrue(False)
+
+    def test_direct_sbc(self):
+        self.cpu._op_98()
+        self.assertTrue(False)
+
+    def test_indirect_sub(self):
+        self.cpu._op_96()
+        self.cpu._op_d6()
+        self.assertTrue(False)
+
+    def test_indirect_sbc(self):
+        self.cpu._op_9e()
+        self.cpu._op_de()
+        self.assertTrue(False)
+
+    def test_increment(self):
+        self.cpu._op_04()
+        self.cpu._op_34()
+        self.assertTrue(False)
+
+    def test_decrement(self):
+        self.cpu._op_05()
+        self.cpu._op_35()
+        self.assertTrue(False)
+
+
+class TestLogicalArithmeticOpcodes(unittest.TestCase):
+    def setUp(self):
+        self.cpu = Cpu()
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/python/gbpy/resources/test_file.gb')
+
     def test_direct_xor(self):
         self.cpu._op_a8()
         self.assertEqual(self.cpu.a, 0)
@@ -117,6 +161,20 @@ class TestArithmeticOpcodes(unittest.TestCase):
 
         self.cpu._op_b6()
         self.assertEqual(self.cpu.a, 0xff)
+
+    def test_and(self):
+        self.cpu._op_a0()
+
+        self.cpu._op_a6()
+
+        self.cpu._op_e6()
+        self.assertTrue(False)
+
+    def test_compare(self):
+        self.cpu._op_b8()
+        self.cpu._op_be()
+        self.cpu._op_fe()
+        self.assertTrue(False)
 
 
 class TestLoadOpcodes(unittest.TestCase):
