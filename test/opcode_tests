@@ -5,6 +5,7 @@ from cpu import Cpu
 class TestArithmeticOpcodes(unittest.TestCase):
     def setUp(self):
         self.cpu = Cpu()
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/python/gbpy/resources/test_file.gb')
 
     def test_registers_0_at_init(self):
         self.assertEqual(0, self.cpu.a)
@@ -21,7 +22,7 @@ class TestArithmeticOpcodes(unittest.TestCase):
         self.assertEqual(0, self.cpu.zero_flag)
         self.assertEqual(0, self.cpu.sub_flag)
 
-    def test_basic_regiser_add(self):
+    def test_direct_add(self):
         self.cpu.b = 0
         self.cpu.c = 15  # should trip sub flag
         self.cpu.d = 255  # should trip carry flag, sub flag reset
@@ -46,9 +47,124 @@ class TestArithmeticOpcodes(unittest.TestCase):
         self.assertEqual(self.cpu.a, 0)
         self.assertListEqual([1, 0, 1, 1], self.cpu.flags())
 
-    def test_add_c(self):
-        print(self.cpu.registers())
+    def test_direct_adc(self):
+        self.cpu.b = 0
+        self.cpu.c = 15  # should trip sub flag
+        self.cpu.d = 255  # should trip carry flag, sub flag reset
+        self.cpu.e = 7
+        self.cpu.h = 233  # should trip zero flag
 
+        self.cpu._op_88()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertListEqual([1, 0, 0, 0], self.cpu.flags())
+
+        self.cpu.a = 1
+        self.cpu._op_89()
+        self.assertEqual(self.cpu.a, 16)
+        self.assertListEqual([0, 0, 1, 0], self.cpu.flags())
+
+        self.cpu._op_8a()
+        self.assertEqual(self.cpu.a, 15)
+        self.assertListEqual([0, 0, 0, 1], self.cpu.flags())
+
+        self.cpu._op_8b()
+        self.cpu._op_8c()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertListEqual([1, 0, 1, 1], self.cpu.flags())
+
+    def test_direct_xor(self):
+        self.cpu._op_a8()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.zero_flag, 1)
+
+        self.cpu.b = 0xf
+        self.cpu._op_a8()
+        self.assertEqual(self.cpu.a, 0xf)
+        self.assertEqual(self.cpu.zero_flag, 0)
+
+        self.cpu.b = 0x5f
+        self.cpu._op_a8()
+        self.assertEqual(self.cpu.a, 0x50)
+
+    def test_indirect_xor(self):
+        self.cpu._op_ae()
+        self.assertEqual(self.cpu.a, 0xff)
+        self.assertEqual(self.cpu.zero_flag, 0)
+
+        self.cpu._op_ae()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.zero_flag, 1)
+
+    def test_direct_or(self):
+        self.cpu.b = 0
+        self.cpu._op_b0()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.zero_flag, 1)
+
+        self.cpu.b = 0x8
+        self.cpu._op_b0()
+        self.assertEqual(self.cpu.a, 0x8)
+        self.assertEqual(self.cpu.zero_flag, 0)
+
+        self.cpu.b = 0xf7
+        self.cpu._op_b0()
+        self.assertEqual(self.cpu.a, 0xff)
+
+    def test_indirect_or(self):
+        self.cpu._op_b6()
+        self.assertEqual(self.cpu.a, 0xff)
+        self.assertEqual(self.cpu.zero_flag, 0)
+
+        self.cpu._op_b6()
+        self.assertEqual(self.cpu.a, 0xff)
+
+
+class TestLoadOpcodes(unittest.TestCase):
+    def setUp(self):
+        self.cpu = Cpu()
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/python/gbpy/resources/test_file.gb')
+
+    def test_direct_load(self):
+        self.cpu.b = 10
+
+        self.cpu._op_48()
+        self.assertEqual(self.cpu.b, self.cpu.c)
+        self.assertEqual(self.cpu.c, 10)
+
+    def test_indirect_load_HL(self):
+        self.cpu.h = 0x0
+        self.cpu.l = 0x0
+        self.cpu._op_46()
+        self.assertEqual(self.cpu.b, 0xff)  # All GB roms will start with this reset op
+
+    def test_indirect_load_PC(self):
+        # Reads from memory at address stored in pc (next byte read)
+        self.cpu.pc = 0x0
+        self.cpu._op_06()
+        self.assertEqual(self.cpu.b, 0xff)  # roms begin with 0xff and that is what we are at.
+        self.assertEqual(self.cpu.pc, 0x01)  # pc should increment, as we read next value for load
+
+    def test_indirect_load_inc(self):
+        self.cpu._op_22()
+        self.assertEqual(self.cpu.a, 0xff)
+        self.assertEqual(self.cpu.l, 1)
+        self.assertEqual(self.cpu.h, 0)
+
+        self.cpu.l = 0xff
+        self.cpu._op_22()
+        self.assertEqual(self.cpu.l, 0)
+        self.assertEqual(self.cpu.h, 1)
+
+    def test_indirect_load_dec(self):
+        self.cpu.l = 1
+        self.cpu._op_32()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.l, 0)
+
+        self.cpu._op_32()
+        self.assertEqual(self.cpu.a, 0xff)
+        self.assertEqual(self.cpu.l, 0xff)
+        self.assertEqual(self.cpu.h, 0xff)
 
 
 if __name__ == '__main__':

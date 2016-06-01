@@ -44,7 +44,7 @@ class MMU(object):
         Resets memory to initial values
         :return:
         """
-        self.rom = []
+        self.rom = [0] * 0x4000
         self.wram = [0] * 0x2000
         self.eram = [0] * 0x8000
         self.zram = [0] * 0x80
@@ -56,8 +56,10 @@ class MMU(object):
         Loads the rom at the given rom_path into local memory.
         :param rom_path:
         """
+        self.reset()
         rom = open(rom_path, "rb").read()
-        self.rom = [index for index in range(0, len(rom))]
+        for index in range(0, len(self.rom)):
+            self.rom[index] = rom[index]
 
     def write_byte(self, addr, value):
         """

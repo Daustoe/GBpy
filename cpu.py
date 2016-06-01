@@ -352,7 +352,6 @@ class Cpu(object):
         :param register:
         :return:
         """
-        print('testing')
         temp = getattr(self, register) + 1
         setattr(self, register, temp)
         self.zero_flag = 1 if temp == 0 else 0
@@ -402,21 +401,25 @@ class Cpu(object):
         self.m = 1
 
     def _adc(self, value):
-        # Add with carry.
         """
-        var a=Z80._r.a;
-        Z80._r.a+=Z80._r.b;
-        Z80._r.a+=(Z80._r.f&0x10)?1:0;
-        Z80._r.f=(Z80._r.a>255)?0x10:0;
-        Z80._r.a&=255;
-        if(!Z80._r.a) Z80._r.f|=0x80;
-        if((Z80._r.a^Z80._r.b^a)&0x10) Z80._r.f|=0x20;
-        Z80._r.m=1;
+        Add value + carry_flag to A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
 
         :param value:
         :return:
         """
-        pass
+        self.hc_flag = 1 if ((self.a & 0xf) + (value & 0xf) + self.carry_flag) > 0xf else 0
+        self.a += value + self.carry_flag
+        self.carry_flag = 1 if self.a > 0xff else 0
+        self.a &= 0xff
+        self.zero_flag = 1 if self.a == 0 else 0
+        self.sub_flag = 0
+        self.m = 1
 
     def _sub(self, value):
         """
@@ -769,12 +772,15 @@ class Cpu(object):
 
     def _op_22(self):
         # LD (HL+), A
-        pass
+        self.a = self.mmu.read_byte((self.h << 8) + self.l)
+        self.l = (self.l + 1) & 0xff
+        if self.l == 0:
+            self.h = (self.h + 1) & 0xff
 
     def _op_23(self):
         # INC HL
         self.l = (self.l + 1) & 0xff
-        if self.e == 0:
+        if self.l == 0:
             self.h = (self.h + 1) & 0xff
         self.m = 1
 
@@ -822,7 +828,9 @@ class Cpu(object):
 
     def _op_2b(self):
         # DEC HL
-        pass
+        self.l = (self.l - 1) & 255
+        if self.l == 255:
+            self.h = (self.h - 1) & 255
 
     def _op_2c(self):
         # INC L
@@ -868,7 +876,10 @@ class Cpu(object):
 
     def _op_32(self):
         # LD (HL-), A
-        pass
+        self.a = self.mmu.read_byte((self.h << 8) + self.l)
+        self.l = (self.l - 1) & 0xff
+        if self.l == 255:
+            self.h = (self.h - 1) & 0xff
 
     def _op_33(self):
         # INC SP
@@ -973,7 +984,7 @@ class Cpu(object):
 
     def _op_46(self):
         # LD B, (HL)
-        pass
+        self.b = self.mmu.read_byte((self.h << 8) + self.l)
 
     def _op_47(self):
         # LD B, A
@@ -1270,38 +1281,31 @@ class Cpu(object):
 
     def _op_87(self):
         # ADD A, A
-        if (self.a & 0xf) + (self.a & 0xf) > 0xf:
-            self.hc_flag |= 1
-        if self.a + self.a > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a + self.a) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._add(self.a)
 
     def _op_88(self):
         # ADC A, B
-        pass
+        self._adc(self.b)
 
     def _op_89(self):
         # ADC A, C
-        pass
+        self._adc(self.c)
 
     def _op_8a(self):
         # ADC A, D
-        pass
+        self._adc(self.d)
 
     def _op_8b(self):
         # ADC A, E
-        pass
+        self._adc(self.e)
 
     def _op_8c(self):
         # ADC A, H
-        pass
+        self._adc(self.h)
 
     def _op_8d(self):
         # ADC A, L
-        pass
+        self._adc(self.l)
 
     def _op_8e(self):
         # ADC A, (HL)
@@ -1309,7 +1313,7 @@ class Cpu(object):
 
     def _op_8f(self):
         # ADC A, A
-        pass
+        self._adc(self.a)
 
     def _op_90(self):
         # SUB A, B
@@ -1491,123 +1495,67 @@ class Cpu(object):
 
     def _op_a8(self):
         # XOR B
-        self.a ^= self.b
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._xor(self.b)
 
     def _op_a9(self):
         # XOR C
-        self.a ^= self.c
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._xor(self.c)
 
     def _op_aa(self):
         # XOR D
-        self.a ^= self.d
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._xor(self.d)
 
     def _op_ab(self):
         # XOR E
-        self.a ^= self.e
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._xor(self.e)
 
     def _op_ac(self):
         # XOR H
-        self.a ^= self.h
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._xor(self.h)
 
     def _op_ad(self):
         # XOR L
-        self.a ^= self.l
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._xor(self.l)
 
     def _op_ae(self):
         # XOR (HL)
-        self.a ^= self.mmu.read_byte((self.h << 8) + self.l)
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 2
+        self._xor(self.mmu.read_byte((self.h << 8) + self.l))
 
     def _op_af(self):
         # XOR A
-        self.a = 0
-        self.zero_flag |= 1
-        self.m = 1
+        self._xor(self.a)
 
     def _op_b0(self):
         # OR B
-        self.a |= self.b
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._or(self.b)
 
     def _op_b1(self):
         # OR C
-        self.a |= self.c
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._or(self.c)
 
     def _op_b2(self):
         # OR D
-        self.a |= self.d
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._or(self.d)
 
     def _op_b3(self):
         # OR E
-        self.a |= self.e
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._or(self.e)
 
     def _op_b4(self):
         # OR H
-        self.a |= self.h
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._or(self.h)
 
     def _op_b5(self):
         # OR L
-        self.a |= self.l
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._or(self.l)
 
     def _op_b6(self):
         # OR (HL)
-        pass
+        self._or(self.mmu.read_byte((self.h << 8) + self.l))
 
     def _op_b7(self):
         # OR A
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._or(self.a)
 
     def _op_b8(self):
         # CP B
