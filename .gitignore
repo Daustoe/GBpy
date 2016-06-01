@@ -40,3 +40,5 @@ Icon
 .pyc
 
 .idea/
+*.iml
+*.xml
