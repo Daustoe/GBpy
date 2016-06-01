@@ -1,4 +1,4 @@
-from gbpy.mmu import MMU
+from mmu import MMU
 __author__ = 'Clayton Powell'
 
 
@@ -36,68 +36,68 @@ class Cpu(object):
 
         # Opcode map
         self.opcodes = {
-            0x00: self._nop(),
-            0x01: self._op_01(),
-            0x02: self._op_02(),
-            0x03: self._op_03(),
-            0x04: self._op_03(),
-            0x05: self._op_05(),
-            0x06: self._op_06(),
-            0x07: self._op_07(),
-            0x08: self._op_08(),
-            0x09: self._op_09(),
-            0x0a: self._op_0a(),
-            0x0b: self._op_0b(),
-            0x0c: self._op_0c(),
-            0x0d: None,
+            0x00: self._nop,
+            0x01: self._op_01,
+            0x02: self._op_02,
+            0x03: self._op_03,
+            0x04: self._inc('b'),
+            0x05: self._dec('b'),
+            0x06: self._op_06,
+            0x07: self._op_07,
+            0x08: self._op_08,
+            0x09: self._op_09,
+            0x0a: self._op_0a,
+            0x0b: self._op_0b,
+            0x0c: self._inc('c'),
+            0x0d: self._dec('c'),
             0x0e: None,
             0x0f: None,
             0x10: None,
             0x11: None,
             0x12: None,
             0x13: None,
-            0x14: None,
-            0x15: None,
+            0x14: self._inc('d'),
+            0x15: self._dec('d'),
             0x16: None,
             0x17: None,
             0x18: None,
             0x19: None,
             0x1a: None,
             0x1b: None,
-            0x1c: None,
-            0x1d: None,
+            0x1c: self._inc('e'),
+            0x1d: self._dec('e'),
             0x1e: None,
             0x1f: None,
             0x20: None,
             0x21: None,
             0x22: None,
             0x23: None,
-            0x24: None,
-            0x25: None,
+            0x24: self._inc('h'),
+            0x25: self._dec('h'),
             0x26: None,
             0x27: None,
             0x28: None,
             0x29: None,
             0x2a: None,
             0x2b: None,
-            0x2c: None,
-            0x2d: None,
+            0x2c: self._inc('l'),
+            0x2d: self._dec('l'),
             0x2e: None,
             0x2f: None,
             0x30: None,
             0x31: None,
             0x32: None,
             0x33: None,
-            0x34: None,
-            0x35: None,
+            0x34: None,  # TODO: INC (HL)
+            0x35: None,  # TODO: DEC (HL)
             0x36: None,
             0x37: None,
             0x38: None,
             0x39: None,
             0x3a: None,
             0x3b: None,
-            0x3c: None,
-            0x3d: None,
+            0x3c: self._inc('a'),
+            0x3d: self._dec('a'),
             0x3e: None,
             0x3f: None,
             0x40: self._ld(self.b, self.b),
@@ -220,14 +220,14 @@ class Cpu(object):
             0xb5: self._or(self.l),
             0xb6: None,  # TODO: OR (HL)
             0xb7: self._or(self.a),
-            0xb8: None,
-            0xb9: None,
-            0xba: None,
-            0xbb: None,
-            0xbc: None,
-            0xbd: None,
-            0xbe: None,
-            0xbf: None,
+            0xb8: self._or(self.b),
+            0xb9: self._or(self.c),
+            0xba: self._or(self.d),
+            0xbb: self._or(self.e),
+            0xbc: self._or(self.h),
+            0xbd: self._or(self.l),
+            0xbe: None,  # TODO: CP (HL)
+            0xbf: self._or(self.a),
             0xc0: None,
             0xc1: None,
             0xc2: None,
@@ -344,6 +344,62 @@ class Cpu(object):
         """
         # TODO: Implement
         pass
+
+    def _cp(self, value):
+        """
+        Compare A with value. Results are not kept in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if A < n
+
+        :param value:
+        :return:
+        """
+        # TODO: Implement
+        pass
+
+    def _inc(self, register):
+        """
+        Increment register.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
+
+        :param register:
+        :return:
+        """
+        print('testing')
+        temp = getattr(self, register) + 1
+        setattr(self, register, temp)
+        self.zero_flag = 1 if temp == 0 else 0
+        self.sub_flag = 0
+        self.hc_flag = 1 if (temp & 0xf) > 0xf else 0
+        return self._inc
+
+    def _dec(self, register):
+        """
+        Decrement register.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if no borrow from bit 3.
+        C - Not affected
+
+        :param register:
+        :return:
+        """
+        temp = getattr(self, register) - 1
+        setattr(self, register, temp)
+        self.zero_flag = 1 if temp == 0 else 0
+        self.sub_flag = 1
+        self.hc_flag = 1 if (temp & 0xf) > 0xf else 0  # TODO: May have to modify, should be now borrow but is carry
 
     def _add(self, value):
         """
