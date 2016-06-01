@@ -1,0 +1,55 @@
+import unittest
+from cpu import Cpu
+
+
+class TestArithmeticOpcodes(unittest.TestCase):
+    def setUp(self):
+        self.cpu = Cpu()
+
+    def test_registers_0_at_init(self):
+        self.assertEqual(0, self.cpu.a)
+        self.assertEqual(0, self.cpu.b)
+        self.assertEqual(0, self.cpu.c)
+        self.assertEqual(0, self.cpu.d)
+        self.assertEqual(0, self.cpu.e)
+        self.assertEqual(0, self.cpu.h)
+        self.assertEqual(0, self.cpu.l)
+
+    def test_flags_0_at_init(self):
+        self.assertEqual(0, self.cpu.carry_flag)
+        self.assertEqual(0, self.cpu.hc_flag)
+        self.assertEqual(0, self.cpu.zero_flag)
+        self.assertEqual(0, self.cpu.sub_flag)
+
+    def test_basic_regiser_add(self):
+        self.cpu.b = 0
+        self.cpu.c = 15  # should trip sub flag
+        self.cpu.d = 255  # should trip carry flag, sub flag reset
+        self.cpu.e = 7
+        self.cpu.h = 234 # should trip zero flag
+
+        self.cpu._op_80()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertListEqual([1, 0, 0, 0], self.cpu.flags())
+
+        self.cpu.a = 1
+        self.cpu._op_81()
+        self.assertEqual(self.cpu.a, 16)
+        self.assertListEqual([0, 0, 1, 0], self.cpu.flags())
+
+        self.cpu._op_82()
+        self.assertEqual(self.cpu.a, 15)
+        self.assertListEqual([0, 0, 0, 1], self.cpu.flags())
+
+        self.cpu._op_83()
+        self.cpu._op_84()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertListEqual([1, 0, 1, 1], self.cpu.flags())
+
+    def test_add_c(self):
+        print(self.cpu.registers())
+
+
+
+if __name__ == '__main__':
+    unittest.main()

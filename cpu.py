@@ -1,4 +1,4 @@
-from gbpy.mmu import MMU
+from mmu import MMU
 __author__ = 'Clayton Powell'
 
 
@@ -307,6 +307,12 @@ class Cpu(object):
         self.pc &= 0xffff
         self.clock['m'] = self.m
 
+    def registers(self):
+        return [self.a, self.b, self.c, self.d, self.e, self.h, self.l]
+
+    def flags(self):
+        return [self.zero_flag, self.sub_flag, self.hc_flag, self.carry_flag]
+
     def _rst(self, pc):
         """
         Push present program counter (pc) onto stack. Jump to new pc given.
@@ -387,7 +393,7 @@ class Cpu(object):
         :return:
         """
         # Add register A to given register and store in A. Check for flags.
-        self.hc_flag = 1 if (self.a & 0xf) + (value & 0xf) > 0xf else 0
+        self.hc_flag = 1 if ((self.a & 0xf) + (value & 0xf)) > 0xf else 0
         self.a += value
         self.carry_flag = 1 if self.a > 0xff else 0
         self.a &= 0xff
@@ -1236,69 +1242,27 @@ class Cpu(object):
 
     def _op_80(self):
         # ADD A, B
-        if (self.a & 0xf) + (self.b & 0xf) > 0xf:
-            self.hc_flag |= 1
-        if self.a + self.b > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a + self.b) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._add(self.b)
 
     def _op_81(self):
         # ADD A, C
-        if (self.a & 0xf) + (self.c & 0xf) > 0xf:
-            self.hc_flag |= 1
-        if self.a + self.c > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a + self.c) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._add(self.c)
 
     def _op_82(self):
         # ADD A, D
-        if (self.a & 0xf) + (self.d & 0xf) > 0xf:
-            self.hc_flag |= 1
-        if self.a + self.d > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a + self.d) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._add(self.d)
 
     def _op_83(self):
         # ADD A, E
-        if (self.a & 0xf) + (self.e & 0xf) > 0xf:
-            self.hc_flag |= 1
-        if self.a + self.e > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a + self.e) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._add(self.e)
 
     def _op_84(self):
         # ADD A, H
-        if (self.a & 0xf) + (self.h & 0xf) > 0xf:
-            self.hc_flag |= 1
-        if self.a + self.h > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a + self.h) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._add(self.h)
 
     def _op_85(self):
         # ADD A, L
-        if (self.a & 0xf) + (self.l & 0xf) > 0xf:
-            self.hc_flag |= 1
-        if self.a + self.l > 0xff:
-            self.carry_flag |= 1
-        self.a = (self.a + self.l) & 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._add(self.l)
 
     def _op_86(self):
         # ADD A, (HL)

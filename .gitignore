@@ -38,3 +38,5 @@ Icon
 
 #python binaries
 .pyc
+
+.idea/
