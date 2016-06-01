@@ -1,4 +1,4 @@
-from mmu import MMU
+from gbpy.mmu import MMU
 __author__ = 'Clayton Powell'
 
 
@@ -34,264 +34,264 @@ class Cpu(object):
         self.hc_flag = 0       # 0x20
         self.carry_flag = 0    # 0x10
 
-        # Opcode map
+        # Opcode map, some opcodes not supported in GB architecture
         self.opcodes = {
-            0x00: self._nop,
+            0x00: self._op_00,
             0x01: self._op_01,
             0x02: self._op_02,
             0x03: self._op_03,
-            0x04: self._inc('b'),
-            0x05: self._dec('b'),
+            0x04: self._op_04,
+            0x05: self._op_05,
             0x06: self._op_06,
             0x07: self._op_07,
             0x08: self._op_08,
             0x09: self._op_09,
             0x0a: self._op_0a,
             0x0b: self._op_0b,
-            0x0c: self._inc('c'),
-            0x0d: self._dec('c'),
-            0x0e: None,
-            0x0f: None,
-            0x10: None,
-            0x11: None,
-            0x12: None,
-            0x13: None,
-            0x14: self._inc('d'),
-            0x15: self._dec('d'),
-            0x16: None,
-            0x17: None,
-            0x18: None,
-            0x19: None,
-            0x1a: None,
-            0x1b: None,
-            0x1c: self._inc('e'),
-            0x1d: self._dec('e'),
-            0x1e: None,
-            0x1f: None,
-            0x20: None,
-            0x21: None,
-            0x22: None,
-            0x23: None,
-            0x24: self._inc('h'),
-            0x25: self._dec('h'),
-            0x26: None,
-            0x27: None,
-            0x28: None,
-            0x29: None,
-            0x2a: None,
-            0x2b: None,
-            0x2c: self._inc('l'),
-            0x2d: self._dec('l'),
-            0x2e: None,
-            0x2f: None,
-            0x30: None,
-            0x31: None,
-            0x32: None,
-            0x33: None,
-            0x34: None,  # TODO: INC (HL)
-            0x35: None,  # TODO: DEC (HL)
-            0x36: None,
-            0x37: None,
-            0x38: None,
-            0x39: None,
-            0x3a: None,
-            0x3b: None,
-            0x3c: self._inc('a'),
-            0x3d: self._dec('a'),
-            0x3e: None,
-            0x3f: None,
-            0x40: self._ld(self.b, self.b),
-            0x41: self._ld(self.b, self.c),
-            0x42: self._ld(self.b, self.d),
-            0x43: self._ld(self.b, self.e),
-            0x44: self._ld(self.b, self.h),
-            0x45: self._ld(self.b, self.l),
-            0x46: None,  # TODO: LD B, (HL)
-            0x47: self._ld(self.b, self.a),
-            0x48: self._ld(self.c, self.b),
-            0x49: self._ld(self.c, self.c),
-            0x4a: self._ld(self.c, self.d),
-            0x4b: self._ld(self.c, self.e),
-            0x4c: self._ld(self.c, self.h),
-            0x4d: self._ld(self.c, self.l),
-            0x4e: None,  # TODO: LD C, (HL)
-            0x4f: self._ld(self.c, self.a),
-            0x50: self._ld(self.d, self.b),
-            0x51: self._ld(self.d, self.c),
-            0x52: self._ld(self.d, self.d),
-            0x53: self._ld(self.d, self.e),
-            0x54: self._ld(self.d, self.h),
-            0x55: self._ld(self.d, self.l),
-            0x56: None,  # TODO: LD D, (HL)
-            0x57: self._ld(self.d, self.a),
-            0x58: self._ld(self.e, self.b),
-            0x59: self._ld(self.e, self.c),
-            0x5a: self._ld(self.e, self.d),
-            0x5b: self._ld(self.e, self.e),
-            0x5c: self._ld(self.e, self.h),
-            0x5d: self._ld(self.e, self.l),
-            0x5e: None,  # TODO: LD E, (HL)
-            0x5f: self._ld(self.e, self.a),
-            0x60: self._ld(self.h, self.b),
-            0x61: self._ld(self.h, self.c),
-            0x62: self._ld(self.h, self.d),
-            0x63: self._ld(self.h, self.e),
-            0x64: self._ld(self.h, self.h),
-            0x65: self._ld(self.h, self.l),
-            0x66: None,  # TODO: LD H, (HL)
-            0x67: self._ld(self.h, self.a),
-            0x68: self._ld(self.l, self.b),
-            0x69: self._ld(self.l, self.c),
-            0x6a: self._ld(self.l, self.d),
-            0x6b: self._ld(self.l, self.e),
-            0x6c: self._ld(self.l, self.h),
-            0x6d: self._ld(self.l, self.l),
-            0x6e: None,  # TODO: LD L, (HL)
-            0x6f: self._ld(self.l, self.a),
-            0x70: None,  # TODO: LD (HL), B
-            0x71: None,  # TODO: LD (HL), C
-            0x72: None,  # TODO: LD (HL), D
-            0x73: None,  # TODO: LD (HL), E
-            0x74: None,  # TODO: LD (HL), H
-            0x75: None,  # TODO: LD (HL), L
-            0x76: self._halt(),
-            0x77: None,  # TODO: LD (HL), A
-            0x78: self._ld(self.a, self.b),
-            0x79: self._ld(self.a, self.c),
-            0x7a: self._ld(self.a, self.d),
-            0x7b: self._ld(self.a, self.e),
-            0x7c: self._ld(self.a, self.h),
-            0x7d: self._ld(self.a, self.l),
-            0x7e: None,  # TODO: LD A, (HL)
-            0x7f: self._ld(self.a, self.a),
-            0x80: self._add(self.b),
-            0x81: self._add(self.c),
-            0x82: self._add(self.d),
-            0x83: self._add(self.e),
-            0x84: self._add(self.h),
-            0x85: self._add(self.l),
-            0x86: None,  # TODO: ADD (HL)
-            0x87: self._add(self.a),
-            0x88: self._adc(self.b),
-            0x89: self._adc(self.c),
-            0x8a: self._adc(self.d),
-            0x8b: self._adc(self.e),
-            0x8c: self._adc(self.h),
-            0x8d: self._adc(self.l),
-            0x8e: None,  # TODO: ADC (HL)
-            0x8f: self._adc(self.a),
-            0x90: self._sub(self.b),
-            0x91: self._sub(self.c),
-            0x92: self._sub(self.d),
-            0x93: self._sub(self.e),
-            0x94: self._sub(self.h),
-            0x95: self._sub(self.l),
-            0x96: None,  # TODO: SUB (HL)
-            0x97: self._sub(self.a),
-            0x98: self._sbc(self.b),
-            0x99: self._sbc(self.c),
-            0x9a: self._sbc(self.d),
-            0x9b: self._sbc(self.e),
-            0x9c: self._sbc(self.h),
-            0x9d: self._sbc(self.l),
-            0x9e: None,  # TODO: SBC (HL)
-            0x9f: self._sbc(self.a),
-            0xa0: self._and(self.b),
-            0xa1: self._and(self.c),
-            0xa2: self._and(self.d),
-            0xa3: self._and(self.e),
-            0xa4: self._and(self.h),
-            0xa5: self._and(self.l),
-            0xa6: None,  # TODO: AND (HL)
-            0xa7: self._and(self.a),
-            0xa8: self._xor(self.b),
-            0xa9: self._xor(self.c),
-            0xaa: self._xor(self.d),
-            0xab: self._xor(self.e),
-            0xac: self._xor(self.h),
-            0xad: self._xor(self.l),
-            0xae: None,  # TODO: XOR (HL)
-            0xaf: self._xor(self.a),
-            0xb0: self._or(self.b),
-            0xb1: self._or(self.c),
-            0xb2: self._or(self.d),
-            0xb3: self._or(self.e),
-            0xb4: self._or(self.h),
-            0xb5: self._or(self.l),
-            0xb6: None,  # TODO: OR (HL)
-            0xb7: self._or(self.a),
-            0xb8: self._or(self.b),
-            0xb9: self._or(self.c),
-            0xba: self._or(self.d),
-            0xbb: self._or(self.e),
-            0xbc: self._or(self.h),
-            0xbd: self._or(self.l),
-            0xbe: None,  # TODO: CP (HL)
-            0xbf: self._or(self.a),
-            0xc0: None,
-            0xc1: None,
-            0xc2: None,
-            0xc3: None,
-            0xc4: None,
-            0xc5: None,
-            0xc6: None,
-            0xc7: self._rst(0x00),
-            0xc8: None,
-            0xc9: None,
-            0xca: None,
-            0xcb: None,
-            0xcc: None,
-            0xcd: None,
-            0xce: None,
-            0xcf: self._rst(0x08),
-            0xd0: None,
-            0xd1: None,
-            0xd2: None,
-            0xd3: None,
-            0xd4: None,
-            0xd5: None,
-            0xd6: None,
-            0xd7: self._rst(0x10),
-            0xd8: None,
-            0xd9: None,
-            0xda: None,
-            0xdb: None,
-            0xdc: None,
-            0xdd: None,
-            0xde: None,
-            0xdf: self._rst(0x18),
-            0xe0: None,
-            0xe1: None,
-            0xe2: None,
-            0xe3: None,
-            0xe4: None,
-            0xe5: None,
-            0xe6: None,
-            0xe7: self._rst(0x20),
-            0xe8: None,
-            0xe9: None,
-            0xea: None,
-            0xeb: None,
-            0xec: None,
-            0xed: None,
-            0xee: None,
-            0xef: self._rst(0x28),
-            0xf0: None,
-            0xf1: None,
-            0xf2: None,
-            0xf3: None,
-            0xf4: None,
-            0xf5: None,
-            0xf6: None,
-            0xf7: self._rst(0x30),
-            0xf8: None,
-            0xf9: None,
-            0xfa: None,
-            0xfb: None,
-            0xfc: None,
-            0xfd: None,
-            0xfe: None,
-            0xff: self._rst(0x38),
+            0x0c: self._op_0c,
+            0x0d: self._op_0d,
+            0x0e: self._op_0e,
+            0x0f: self._op_0f,
+            0x10: self._op_10,
+            0x11: self._op_11,
+            0x12: self._op_12,
+            0x13: self._op_13,
+            0x14: self._op_14,
+            0x15: self._op_15,
+            0x16: self._op_16,
+            0x17: self._op_17,
+            0x18: self._op_18,
+            0x19: self._op_19,
+            0x1a: self._op_1a,
+            0x1b: self._op_1b,
+            0x1c: self._op_1c,
+            0x1d: self._op_1d,
+            0x1e: self._op_1e,
+            0x1f: self._op_1f,
+            0x20: self._op_20,
+            0x21: self._op_21,
+            0x22: self._op_22,
+            0x23: self._op_23,
+            0x24: self._op_24,
+            0x25: self._op_25,
+            0x26: self._op_26,
+            0x27: self._op_27,
+            0x28: self._op_28,
+            0x29: self._op_29,
+            0x2a: self._op_2a,
+            0x2b: self._op_2b,
+            0x2c: self._op_2c,
+            0x2d: self._op_2d,
+            0x2e: self._op_2e,
+            0x2f: self._op_2f,
+            0x30: self._op_30,
+            0x31: self._op_31,
+            0x32: self._op_32,
+            0x33: self._op_33,
+            0x34: self._op_34,
+            0x35: self._op_35,
+            0x36: self._op_36,
+            0x37: self._op_37,
+            0x38: self._op_38,
+            0x39: self._op_39,
+            0x3a: self._op_3a,
+            0x3b: self._op_3b,
+            0x3c: self._op_3c,
+            0x3d: self._op_3d,
+            0x3e: self._op_3e,
+            0x3f: self._op_3f,
+            0x40: self._op_40,
+            0x41: self._op_41,
+            0x42: self._op_42,
+            0x43: self._op_43,
+            0x44: self._op_44,
+            0x45: self._op_45,
+            0x46: self._op_46,
+            0x47: self._op_47,
+            0x48: self._op_48,
+            0x49: self._op_49,
+            0x4a: self._op_4a,
+            0x4b: self._op_4b,
+            0x4c: self._op_4c,
+            0x4d: self._op_4d,
+            0x4e: self._op_4e,
+            0x4f: self._op_4f,
+            0x50: self._op_50,
+            0x51: self._op_51,
+            0x52: self._op_52,
+            0x53: self._op_53,
+            0x54: self._op_54,
+            0x55: self._op_55,
+            0x56: self._op_56,
+            0x57: self._op_57,
+            0x58: self._op_58,
+            0x59: self._op_59,
+            0x5a: self._op_5a,
+            0x5b: self._op_5b,
+            0x5c: self._op_5c,
+            0x5d: self._op_5d,
+            0x5e: self._op_5e,
+            0x5f: self._op_5f,
+            0x60: self._op_60,
+            0x61: self._op_61,
+            0x62: self._op_62,
+            0x63: self._op_63,
+            0x64: self._op_64,
+            0x65: self._op_65,
+            0x66: self._op_66,
+            0x67: self._op_67,
+            0x68: self._op_68,
+            0x69: self._op_69,
+            0x6a: self._op_6a,
+            0x6b: self._op_6b,
+            0x6c: self._op_6c,
+            0x6d: self._op_6d,
+            0x6e: self._op_6e,
+            0x6f: self._op_6f,
+            0x70: self._op_70,
+            0x71: self._op_71,
+            0x72: self._op_72,
+            0x73: self._op_73,
+            0x74: self._op_74,
+            0x75: self._op_75,
+            0x76: self._op_76,
+            0x77: self._op_77,
+            0x78: self._op_78,
+            0x79: self._op_79,
+            0x7a: self._op_7a,
+            0x7b: self._op_7b,
+            0x7c: self._op_7c,
+            0x7d: self._op_7d,
+            0x7e: self._op_7e,
+            0x7f: self._op_7f,
+            0x80: self._op_80,
+            0x81: self._op_81,
+            0x82: self._op_82,
+            0x83: self._op_83,
+            0x84: self._op_84,
+            0x85: self._op_85,
+            0x86: self._op_86,
+            0x87: self._op_87,
+            0x88: self._op_88,
+            0x89: self._op_89,
+            0x8a: self._op_8a,
+            0x8b: self._op_8b,
+            0x8c: self._op_8c,
+            0x8d: self._op_8d,
+            0x8e: self._op_8e,
+            0x8f: self._op_8f,
+            0x90: self._op_90,
+            0x91: self._op_91,
+            0x92: self._op_92,
+            0x93: self._op_93,
+            0x94: self._op_94,
+            0x95: self._op_95,
+            0x96: self._op_96,
+            0x97: self._op_97,
+            0x98: self._op_98,
+            0x99: self._op_99,
+            0x9a: self._op_9a,
+            0x9b: self._op_9b,
+            0x9c: self._op_9c,
+            0x9d: self._op_9d,
+            0x9e: self._op_9e,
+            0x9f: self._op_9f,
+            0xa0: self._op_a0,
+            0xa1: self._op_a1,
+            0xa2: self._op_a2,
+            0xa3: self._op_a3,
+            0xa4: self._op_a4,
+            0xa5: self._op_a5,
+            0xa6: self._op_a6,
+            0xa7: self._op_a7,
+            0xa8: self._op_a8,
+            0xa9: self._op_a9,
+            0xaa: self._op_aa,
+            0xab: self._op_ab,
+            0xac: self._op_ac,
+            0xad: self._op_ad,
+            0xae: self._op_ae,
+            0xaf: self._op_af,
+            0xb0: self._op_b0,
+            0xb1: self._op_b1,
+            0xb2: self._op_b2,
+            0xb3: self._op_b3,
+            0xb4: self._op_b4,
+            0xb5: self._op_b5,
+            0xb6: self._op_b6,
+            0xb7: self._op_b7,
+            0xb8: self._op_b8,
+            0xb9: self._op_b9,
+            0xba: self._op_ba,
+            0xbb: self._op_bb,
+            0xbc: self._op_bc,
+            0xbd: self._op_bd,
+            0xbe: self._op_be,
+            0xbf: self._op_bf,
+            0xc0: self._op_c0,
+            0xc1: self._op_c1,
+            0xc2: self._op_c2,
+            0xc3: self._op_c3,
+            0xc4: self._op_c4,
+            0xc5: self._op_c5,
+            0xc6: self._op_c6,
+            0xc7: self._op_c7,
+            0xc8: self._op_c8,
+            0xc9: self._op_c9,
+            0xca: self._op_ca,
+            0xcb: self._op_cb,
+            0xcc: self._op_cc,
+            0xcd: self._op_cd,
+            0xce: self._op_ce,
+            0xcf: self._op_cf,
+            0xd0: self._op_d0,
+            0xd1: self._op_d1,
+            0xd2: self._op_d2,
+            0xd3: self._op_d3,
+            0xd4: self._op_d4,
+            0xd5: self._op_d5,
+            0xd6: self._op_d6,
+            0xd7: self._op_d7,
+            0xd8: self._op_d8,
+            0xd9: self._op_d9,
+            0xda: self._op_da,
+            0xdb: self._op_db,
+            0xdc: self._op_dc,
+            0xdd: self._op_dd,
+            0xde: self._op_de,
+            0xdf: self._op_df,
+            0xe0: self._op_e0,
+            0xe1: self._op_e1,
+            0xe2: self._op_e2,
+            0xe3: self._op_e3,
+            0xe4: self._op_e4,
+            0xe5: self._op_e5,
+            0xe6: self._op_e6,
+            0xe7: self._op_e7,
+            0xe8: self._op_e8,
+            0xe9: self._op_e9,
+            0xea: self._op_ea,
+            0xeb: self._op_eb,
+            0xec: self._op_ec,
+            0xed: self._op_ed,
+            0xee: self._op_ee,
+            0xef: self._op_ef,
+            0xf0: self._op_f0,
+            0xf1: self._op_f1,
+            0xf2: self._op_f2,
+            0xf3: self._op_f3,
+            0xf4: self._op_f4,
+            0xf5: self._op_f5,
+            0xf6: self._op_f6,
+            0xf7: self._op_f7,
+            0xf8: self._op_f8,
+            0xf9: self._op_f9,
+            0xfa: self._op_fa,
+            0xfb: self._op_fb,
+            0xfc: self._op_fc,
+            0xfd: self._op_fd,
+            0xfe: self._op_fe,
+            0xff: self._op_ff,
         }
         # TODO: Implement extended operations
         self.ext_opcodes = {}
@@ -307,20 +307,6 @@ class Cpu(object):
         self.pc &= 0xffff
         self.clock['m'] = self.m
 
-    def _nop(self):
-        """
-        No operation, idle cycle
-        :return:
-        """
-        self.m = 1
-
-    def _halt(self):
-        """
-
-        :return:
-        """
-        pass
-
     def _rst(self, pc):
         """
         Push present program counter (pc) onto stack. Jump to new pc given.
@@ -330,20 +316,6 @@ class Cpu(object):
         # TODO: Need to push pc to stack before we set pc to new value.
         self.pc = pc
         self.m = 3
-
-    def _ld(self, storage, value):
-        """
-        Store value into 'storage' register.
-
-        Flags affected:
-        --None--
-
-        :param storage:
-        :param value:
-        :return:
-        """
-        # TODO: Implement
-        pass
 
     def _cp(self, value):
         """
@@ -513,65 +485,97 @@ class Cpu(object):
         self.sub_flag = 0
         self.m = 1
 
+    def _op_00(self):
+        """
+        NOP
+        0x00
+        :return:
+        """
+        self.m = 1
+
     def _op_01(self):
-        # LD BC, d16
+        """
+        LD BC, d16
+        0x01
+        :return:
+        """
         self.c = self.mmu.read_byte(self.pc)
         self.b = self.mmu.read_byte(self.pc + 1)
         self.pc += 2
         self.m = 3
 
     def _op_02(self):
-        # LD (BC), A
+        """
+        LD (BC), A
+        0x02
+        :return:
+        """
         self.mmu.write_byte((self.b << 8) + self.c, self.a)
         self.m = 2
 
     def _op_03(self):
-        # INC BC
+        """
+        INC BC
+        0x03
+        :return:
+        """
         self.c = (self.c + 1) & 0xff
         if self.c == 0:
             self.b = (self.b + 1) & 0xff
         self.m = 1
 
     def _op_04(self):
-        # INC B
-        self.b = (self.b + 1) & 0xff
-        self.sub_flag = 0
-        if self.b == 0:
-            self.zero_flag |= 1
-        if self.b & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        """
+        INC B
+        0x04
+        :return:
+        """
+        self._inc('b')
 
     def _op_05(self):
-        # DEC B
-        self.b = (self.b - 1) & 0xff
-        self.sub_flag = 1
-        if self.b == 0:
-            self.zero_flag |= 1
-        if self.b & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        """
+        DEC B
+        0x05
+        :return:
+        """
+        self._dec('b')
 
     def _op_06(self):
-        # LD B, d8
+        """
+        LD B, d8
+        0x06
+        :return:
+        """
         self.b = self.mmu.read_byte(self.pc)
         self.pc += 1
         self.m = 2
 
     def _op_07(self):
-        # RLCA
+        """
+        RLCA
+        0x07
+        :return:
+        """
         high_bit = (self.a & 0x80) / 0x80
         self.a = ((self.a << 1) & 0xff) | high_bit
         self.carry_flag = high_bit
         self.m = 1
 
     def _op_08(self):
-        # LD (a16), SP          (may need work)
+        """
+        LD (a16), SP
+        0x08
+        :return:
+        """
         self.mmu.write_word(self.pc, self.sp)
         self.m = 4
 
     def _op_09(self):
-        # ADD HL, BC
+        """
+        ADD HL, BC
+        0x09
+        :return:
+        """
         hl = (self.h << 8) + self.l
         bc = (self.b << 8) + self.c
         # may need to do something with Zero flag here
@@ -585,53 +589,73 @@ class Cpu(object):
         self.m = 3
 
     def _op_0a(self):
-        # LD A, (BC)
+        """
+        LD A, (BC)
+        0x0a
+        :return:
+        """
         self.a = self.mmu.read_byte((self.b << 8) | self.c)
         self.m = 2
 
     def _op_0b(self):
-        # DEC BC
+        """
+        DEC BC
+        0x0b
+        :return:
+        """
         self.c = (self.c - 1) & 0xff
         if self.c == 0xff:
             self.b = (self.b - 1) & 0xff
         self.m = 1
 
     def _op_0c(self):
-        # INC C
-        self.c = (self.c + 1) & 0xff
-        self.sub_flag = 0
-        if self.c == 0:
-            self.zero_flag |= 1
-        if self.c & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        """
+        INC C
+        0x0c
+        :return:
+        """
+        self._inc('c')
 
     def _op_0d(self):
-        # DEC C
-        self.c = (self.c - 1) & 0xff
-        self.sub_flag = 1
-        if self.c == 0:
-            self.zero_flag |= 1
-        if self.c & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        """
+        DEC C
+        0x0d
+        :return:
+        """
+        self._dec('c')
 
     def _op_0e(self):
-        # LD C, d8
+        """
+        LD C, d8
+        0x0e
+        :return:
+        """
         self.c = self.mmu.read_byte(self.pc)
         self.pc += 1
         self.m = 2
 
     def _op_0f(self):
-        # RRCA
+        """
+        RRCA
+        0x0f
+        :return:
+        """
         pass
 
     def _op_10(self):
-        # STOP 0
+        """
+        STOP 0
+        0x10
+        :return:
+        """
         pass
 
     def _op_11(self):
-        # LD DE, d16
+        """
+        LD DE, d16
+        0x11
+        :return:
+        """
         self.d = self.mmu.read_byte(self.pc)
         self.e = self.mmu.read_byte(self.pc + 1)
         self.pc += 2
@@ -1720,7 +1744,7 @@ class Cpu(object):
 
     def _op_c7(self):
         # RST 00H
-        pass
+        self._rst(0x0)
 
     def _op_c8(self):
         # RET Z
@@ -1752,7 +1776,7 @@ class Cpu(object):
 
     def _op_cf(self):
         # RST 08H
-        pass
+        self._rst(0x8)
 
     def _op_d0(self):
         # RET NC
@@ -1784,7 +1808,7 @@ class Cpu(object):
 
     def _op_d7(self):
         # RST 10H
-        pass
+        self._rst(0x10)
 
     def _op_d8(self):
         # RET C
@@ -1816,7 +1840,7 @@ class Cpu(object):
 
     def _op_df(self):
         # RST 18H
-        pass
+        self._rst(0x18)
 
     def _op_e0(self):
         # LDH (a8), A
@@ -1848,7 +1872,7 @@ class Cpu(object):
 
     def _op_e7(self):
         # RST 20H
-        pass
+        self._rst(0x20)
 
     def _op_e8(self):
         # ADD SP, r8
@@ -1880,7 +1904,7 @@ class Cpu(object):
 
     def _op_ef(self):
         # RST 28H
-        pass
+        self._rst(0x28)
 
     def _op_f0(self):
         # LDH A, (a8)
@@ -1912,7 +1936,7 @@ class Cpu(object):
 
     def _op_f7(self):
         # RST 30H
-        pass
+        self._rst(0x30)
 
     def _op_f8(self):
         # LD HL, SP+r8
@@ -1944,4 +1968,4 @@ class Cpu(object):
 
     def _op_ff(self):
         # RST 38H
-        pass
+        self._rst(0x38)
