@@ -357,7 +357,6 @@ class Cpu(object):
         self.zero_flag = 1 if temp == 0 else 0
         self.sub_flag = 0
         self.hc_flag = 1 if (temp & 0xf) > 0xf else 0
-        return self._inc
 
     def _dec(self, register):
         """
@@ -693,23 +692,11 @@ class Cpu(object):
 
     def _op_14(self):
         # INC D
-        self.d = (self.d + 1) & 0xff
-        self.sub_flag = 0
-        if self.d == 0:
-            self.zero_flag |= 1
-        if self.d & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        self._inc('d')
 
     def _op_15(self):
         # DEC D
-        self.d = (self.d - 1) & 0xff
-        self.sub_flag = 1
-        if self.d == 0:
-            self.zero_flag |= 1
-        if self.d & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        self._dec('d')
 
     def _op_16(self):
         # LD D, d8
@@ -740,23 +727,11 @@ class Cpu(object):
 
     def _op_1c(self):
         # INC E
-        self.e = (self.e + 1) & 0xff
-        self.sub_flag = 0
-        if self.e == 0:
-            self.zero_flag |= 1
-        if self.e & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        self._inc('e')
 
     def _op_1d(self):
         # DEC E
-        self.e = (self.e - 1) & 0xff
-        self.sub_flag = 1
-        if self.e == 0:
-            self.zero_flag |= 1
-        if self.e & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        self._dec('e')
 
     def _op_1e(self):
         # LD E, d8
@@ -795,23 +770,11 @@ class Cpu(object):
 
     def _op_24(self):
         # INC H
-        self.h = (self.h + 1) & 0xff
-        self.sub_flag = 0
-        if self.h == 0:
-            self.zero_flag |= 1
-        if self.h & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        self._inc('h')
 
     def _op_25(self):
         # DEC H
-        self.h = (self.h - 1) & 0xff
-        self.sub_flag = 1
-        if self.h == 0:
-            self.zero_flag |= 1
-        if self.h & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        self._dec('h')
 
     def _op_26(self):
         # LD H, d8
@@ -843,23 +806,11 @@ class Cpu(object):
 
     def _op_2c(self):
         # INC L
-        self.l = (self.l + 1) & 0xff
-        self.sub_flag = 0
-        if self.l == 0:
-            self.zero_flag |= 1
-        if self.l & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        self._inc('l')
 
     def _op_2d(self):
         # DEC L
-        self.l = (self.l - 1) & 0xff
-        self.sub_flag = 1
-        if self.l == 0:
-            self.zero_flag |= 1
-        if self.l & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        self._dec('l')
 
     def _op_2e(self):
         # LD L, d8
@@ -934,23 +885,11 @@ class Cpu(object):
 
     def _op_3c(self):
         # INC A
-        self.a = (self.a + 1) & 0xff
-        self.sub_flag = 0
-        if self.a == 0:
-            self.zero_flag |= 1
-        if self.a & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        self._inc('a')
 
     def _op_3d(self):
         # DEC A
-        self.a = (self.a - 1) & 0xff
-        self.sub_flag = 1
-        if self.a == 0:
-            self.zero_flag |= 1
-        if self.a & 0xf == 0:
-            self.hc_flag |= 1
-        self.m = 1
+        self._dec('a')
 
     def _op_3e(self):
         # LD A, d8
