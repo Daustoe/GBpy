@@ -855,7 +855,12 @@ class Cpu(object):
     def _op_35(self):
         # DEC (HL)
         # Decrement value stored at memory address (HL)
-        pass
+        temp = self.mmu.read_byte((self.h << 8) + self.l)
+        temp = (temp - 1) & 0xff
+        self.mmu.write_byte((self.h << 8) + self.l, temp)
+        self.zero_flag = 1 if temp == 0 else 0
+        self.sub_flag = 1
+        self.hc_flag = 1 if (temp & 0xf) > 0xf else 0
 
     def _op_36(self):
         # LD (HL), d8

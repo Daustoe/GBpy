@@ -5,7 +5,7 @@ from cpu import Cpu
 class TestArithmeticOpcodes(unittest.TestCase):
     def setUp(self):
         self.cpu = Cpu()
-        self.cpu.mmu.load('C:/Users/cjpowell/workspace/python/gbpy/resources/test_file.gb')
+        self.cpu.mmu.load('C:/Users/Clayton/workspace/GBpy/resources/test_file.gb')
 
     def test_registers_0_at_init(self):
         self.assertEqual(0, self.cpu.a)
@@ -106,15 +106,21 @@ class TestArithmeticOpcodes(unittest.TestCase):
         self.assertTrue(False)
 
     def test_decrement(self):
+        self.cpu.b = 1
         self.cpu._op_05()
+        self.assertEqual(self.cpu.b, 0)
+        self.assertEqual(self.cpu.zero_flag, 1)
+        self.assertEqual(self.cpu.sub_flag, 1)
+
+        self.assertEqual(self.cpu.mmu.rom[0], 0xff)
         self.cpu._op_35()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.mmu.rom[0], 0xfe)
 
 
 class TestLogicalArithmeticOpcodes(unittest.TestCase):
     def setUp(self):
         self.cpu = Cpu()
-        self.cpu.mmu.load('C:/Users/cjpowell/workspace/python/gbpy/resources/test_file.gb')
+        self.cpu.mmu.load('C:/Users/Clayton/workspace/GBpy/resources/test_file.gb')
 
     def test_direct_xor(self):
         self.cpu._op_a8()
@@ -180,7 +186,7 @@ class TestLogicalArithmeticOpcodes(unittest.TestCase):
 class TestLoadOpcodes(unittest.TestCase):
     def setUp(self):
         self.cpu = Cpu()
-        self.cpu.mmu.load('C:/Users/cjpowell/workspace/python/gbpy/resources/test_file.gb')
+        self.cpu.mmu.load('C:/Users/Clayton/workspace/GBpy/resources/test_file.gb')
 
     def test_direct_load(self):
         self.cpu.b = 10
