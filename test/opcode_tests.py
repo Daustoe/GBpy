@@ -5,7 +5,7 @@ from cpu import Cpu
 class TestArithmeticOpcodes(unittest.TestCase):
     def setUp(self):
         self.cpu = Cpu()
-        self.cpu.mmu.load('C:/Users/Clayton/workspace/GBpy/resources/test_file.gb')
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_registers_0_at_init(self):
         self.assertEqual(0, self.cpu.a)
@@ -120,7 +120,7 @@ class TestArithmeticOpcodes(unittest.TestCase):
 class TestLogicalArithmeticOpcodes(unittest.TestCase):
     def setUp(self):
         self.cpu = Cpu()
-        self.cpu.mmu.load('C:/Users/Clayton/workspace/GBpy/resources/test_file.gb')
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_direct_xor(self):
         self.cpu._op_a8()
@@ -169,12 +169,21 @@ class TestLogicalArithmeticOpcodes(unittest.TestCase):
         self.assertEqual(self.cpu.a, 0xff)
 
     def test_and(self):
+        self.cpu.b = 0xf
         self.cpu._op_a0()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.zero_flag, 1)
 
+        self.cpu.a = 0xff
         self.cpu._op_a6()
+        self.assertEqual(self.cpu.a, 0xff)
+        self.assertEqual(self.cpu.zero_flag, 0)
 
+        self.cpu.pc = 1
         self.cpu._op_e6()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.zero_flag, 1)
+        self.assertEqual(self.cpu.pc, 2)
 
     def test_compare(self):
         self.cpu._op_b8()
@@ -186,7 +195,7 @@ class TestLogicalArithmeticOpcodes(unittest.TestCase):
 class TestLoadOpcodes(unittest.TestCase):
     def setUp(self):
         self.cpu = Cpu()
-        self.cpu.mmu.load('C:/Users/Clayton/workspace/GBpy/resources/test_file.gb')
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_direct_load(self):
         self.cpu.b = 10

@@ -325,7 +325,7 @@ class Cpu(object):
 
     def _cp(self, value):
         """
-        Compare A with value. Results are not kept in A.
+        Compare A with value. Results are not kept in A. This op does not affect registers in any way.
 
         Flags affected:
         Z - Set if result is zero
@@ -336,8 +336,12 @@ class Cpu(object):
         :param value:
         :return:
         """
-        # TODO: Implement
-        pass
+        if self.a == value:
+            self.zero_flag = 1
+        if self.a < value:
+            self.carry_flag = 1
+        if (self.a & 0xf) < (value & 0xf):
+            self.hc_flag = 1
 
     def _inc(self, register):
         """
@@ -821,7 +825,8 @@ class Cpu(object):
     def _op_2f(self):
         # CPL
         self.a ^= 0xff
-        # some flags to check here?
+        self.sub_flag = 1
+        self.hc_flag = 1
         self.m = 1
 
     def _op_30(self):
@@ -1335,65 +1340,35 @@ class Cpu(object):
     def _op_a0(self):
         # AND B
         # possible half carry flag set on every AND op
-        self.a &= self.b
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._and(self.b)
 
     def _op_a1(self):
         # AND C
-        self.a &= self.c
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._and(self.c)
 
     def _op_a2(self):
         # AND D
-        self.a &= self.d
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._and(self.d)
 
     def _op_a3(self):
         # AND E
-        self.a &= self.e
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._and(self.e)
 
     def _op_a4(self):
         # AND H
-        self.a &= self.h
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._and(self.h)
 
     def _op_a5(self):
         # AND L
-        self.a &= self.l
-        self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._and(self.l)
 
     def _op_a6(self):
         # AND (HL)
-        self.a &= self.mmu.read_byte((self.h << 8) + self.l)
-        self.a &= 255
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 2
+        self._and(self.mmu.read_byte((self.h << 8) + self.l))
 
     def _op_a7(self):
         # AND A
-        if self.a == 0:
-            self.zero_flag |= 1
-        self.m = 1
+        self._and(self.a)
 
     def _op_a8(self):
         # XOR B
@@ -1461,72 +1436,38 @@ class Cpu(object):
 
     def _op_b8(self):
         # CP B
-        if self.a == self.b:
-            self.zero_flag |= 1
-        if (self.a & 0xf) < (self.b & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.b:
-            self.carry_flag |= 1
-        self.m = 1
+        self._cp(self.b)
 
     def _op_b9(self):
         # CP C
-        if self.a == self.c:
-            self.zero_flag |= 1
-        if (self.a & 0xf) < (self.c & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.c:
-            self.carry_flag |= 1
-        self.m = 1
+        self._cp(self.c)
 
     def _op_ba(self):
         # CP D
-        if self.a == self.d:
-            self.zero_flag |= 1
-        if (self.a & 0xf) < (self.d & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.d:
-            self.carry_flag |= 1
-        self.m = 1
+        self._cp(self.d)
 
     def _op_bb(self):
         # CP E
-        if self.a == self.e:
-            self.zero_flag |= 1
-        if (self.a & 0xf) < (self.e & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.e:
-            self.carry_flag |= 1
-        self.m = 1
+        self._cp(self.e)
 
     def _op_bc(self):
         # CP H
-        if self.a == self.h:
-            self.zero_flag |= 1
-        if (self.a & 0xf) < (self.h & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.h:
-            self.carry_flag |= 1
-        self.m = 1
+        self._cp(self.h)
 
     def _op_bd(self):
         # CP L
-        if self.a == self.l:
-            self.zero_flag |= 1
-        if (self.a & 0xf) < (self.l & 0xf):
-            self.hc_flag |= 1
-        if self.a < self.l:
-            self.carry_flag |= 1
-        self.m = 1
+        self._cp(self.l)
 
     def _op_be(self):
         # CP (HL)
-        pass
+        self._cp(self.mmu.read_byte((self.h << 8) + self.l))
 
     def _op_bf(self):
         # CP A
-        self.zero_flag |= 1
-        self.m = 1
+        self.zero_flag = 1
+        self.sub_flag = 1
+        self.hc_flag = 0
+        self.carry_flag = 0
 
     def _op_c0(self):
         # RET NZ
@@ -1682,7 +1623,8 @@ class Cpu(object):
 
     def _op_e6(self):
         # AND d8
-        pass
+        self._and(self.mmu.read_byte(self.pc))
+        self.pc += 1
 
     def _op_e7(self):
         # RST 20H
@@ -1778,7 +1720,8 @@ class Cpu(object):
 
     def _op_fe(self):
         # CP d8
-        pass
+        self._cp(self.mmu.read_byte(self.pc))
+        self.pc += 1
 
     def _op_ff(self):
         # RST 38H
