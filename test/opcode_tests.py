@@ -102,8 +102,15 @@ class TestArithmeticOpcodes(unittest.TestCase):
 
     def test_increment(self):
         self.cpu._op_04()
+        self.assertEqual(self.cpu.b, 1)
+
+        self.cpu.c = 0xf
+        self.cpu._op_0c()
+        self.assertEqual(self.cpu.c, 0x10)
+        self.assertEqual(self.cpu.hc_flag, 1)
         self.cpu._op_34()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.zero_flag, 1)
+        self.assertEqual(self.cpu.hc_flag, 1)
 
     def test_decrement(self):
         self.cpu.b = 1
@@ -187,9 +194,19 @@ class TestLogicalArithmeticOpcodes(unittest.TestCase):
 
     def test_compare(self):
         self.cpu._op_b8()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.zero_flag, 1)
+        self.assertEqual(self.cpu.carry_flag, 0)
+
         self.cpu._op_be()
+        self.assertEqual(self.cpu.zero_flag, 0)
+        self.assertEqual(self.cpu.carry_flag, 1)
+        self.assertEqual(self.cpu.hc_flag, 1)
+
+        self.cpu.a = 0xff
         self.cpu._op_fe()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.zero_flag, 1)
+        self.assertEqual(self.cpu.carry_flag, 0)
 
 
 class TestLoadOpcodes(unittest.TestCase):

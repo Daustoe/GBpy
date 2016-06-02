@@ -338,10 +338,16 @@ class Cpu(object):
         """
         if self.a == value:
             self.zero_flag = 1
+        else:
+            self.zero_flag = 0
         if self.a < value:
             self.carry_flag = 1
+        else:
+            self.carry_flag = 0
         if (self.a & 0xf) < (value & 0xf):
             self.hc_flag = 1
+        else:
+            self.hc_flag = 0
 
     def _inc(self, register):
         """
@@ -360,7 +366,7 @@ class Cpu(object):
         setattr(self, register, temp)
         self.zero_flag = 1 if temp == 0 else 0
         self.sub_flag = 0
-        self.hc_flag = 1 if (temp & 0xf) > 0xf else 0
+        self.hc_flag = 1 if (temp & 0xf) == 0 else 0
 
     def _dec(self, register):
         """
@@ -855,7 +861,18 @@ class Cpu(object):
         # INC (HL)
         # Increment value stored at memory address (HL)
         # self.mmu.read_byte()
-        pass
+        addr = (self.h << 8) + self.l
+        value = (self.mmu.read_byte(addr) + 1) & 0xff
+        self.mmu.write_byte(addr, value)
+        self.sub_flag = 0
+        if value == 0:
+            self.zero_flag = 1
+        else:
+            self.zero_flag = 0
+        if (value & 0xf) == 0:
+            self.hc_flag = 1
+        else:
+            self.hc_flag = 0
 
     def _op_35(self):
         # DEC (HL)
@@ -1235,7 +1252,7 @@ class Cpu(object):
 
     def _op_86(self):
         # ADD A, (HL)
-        pass
+        self._add(self.mmu.read_byte((self.h << 8) + self.l))
 
     def _op_87(self):
         # ADD A, A
