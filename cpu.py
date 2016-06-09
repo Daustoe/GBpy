@@ -542,9 +542,11 @@ class Cpu(object):
         0x07
         :return:
         """
-        high_bit = (self.a & 0x80) / 0x80
-        self.a = ((self.a << 1) & 0xff) | high_bit
-        self.carry_flag = high_bit
+        self.carry_flag = (self.a & 0x80) / 0x80
+        self.a = ((self.a << 1) & 0xff) | self.carry_flag
+        self.zero_flag = 1 if self.a == 0 else 0
+        self.sub_flag = 0
+        self.hc_flag = 0
         self.m = 1
 
     def _op_08(self):
@@ -626,7 +628,9 @@ class Cpu(object):
         0x0f
         :return:
         """
-        pass
+        self.carry_flag = self.a & 0x1
+        self.a = (self.a >> 1) & 0xff
+
 
     def _op_10(self):
         """
@@ -634,6 +638,7 @@ class Cpu(object):
         0x10
         :return:
         """
+        # TODO: Once cycles implemented, add functionality to stop cycles here.
         pass
 
     def _op_11(self):
@@ -675,7 +680,9 @@ class Cpu(object):
 
     def _op_17(self):
         # RLA
-        pass
+        high_bit = (self.a & 0x80) / 0x80
+        self.a = ((self.a << 1) & 0xff) | self.carry_flag
+        self.carry_flag = high_bit
 
     def _op_18(self):
         # JR r8
@@ -848,7 +855,7 @@ class Cpu(object):
     def _op_36(self):
         # LD (HL), d8
         # Load byte value into memory address (HL)
-        self.mmu.write_byte(self.pc)
+        self.mmu.write_byte((self.h << 8) + self.l, self.pc)
         self.pc += 1
         # TODO: this may need to be updated. Will have to check whether it should be pc, or location in rom at pc
 
