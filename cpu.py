@@ -409,27 +409,6 @@ class Cpu(object):
         self.sub_flag = 0
         self.m = 1
 
-    def _adc(self, value):
-        """
-        Add value + carry_flag to A.
-
-        Flags affected:
-        Z - Set if result is zero
-        N - Reset to 0
-        H - Set if carry from bit 3
-        C - Set if carry from bit 7
-
-        :param value:
-        :return:
-        """
-        self.hc_flag = 1 if ((self.a & 0xf) + (value & 0xf) + self.carry_flag) > 0xf else 0
-        self.a += value + self.carry_flag
-        self.carry_flag = 1 if self.a > 0xff else 0
-        self.a &= 0xff
-        self.zero_flag = 1 if self.a == 0 else 0
-        self.sub_flag = 0
-        self.m = 1
-
     def _sub(self, value):
         """
         Subtract value from register A.
@@ -443,33 +422,13 @@ class Cpu(object):
         :param value:
         :return:
         """
-        # TODO: Implement
-        if (self.a & 0xf) < (value & 0xf):
-            self.hc_flag = 1
-        if self.a < value > 0xff:
-            self.carry_flag = 1
+        self.hc_flag = 1 if (self.a & 0xf) < (value & 0xf) else 0
+        self.carry_flag = 1 if self.a < value else 0
         self.a -= value
         self.a &= 0xff
-        if self.a == 0:
-            self.zero_flag = 1
+        self.zero_flag = 1 if self.a == 0 else 0
         self.sub_flag = 1
         self.m = 1
-
-    def _sbc(self, value):
-        """
-        Subtract value + Carry flag from register A.
-
-        Flags affected:
-        Z - Set if result is zero
-        N - Set
-        H - Set if no borrow from bit 4
-        C - Set if no borrow
-
-        :param value:
-        :return:
-        """
-        # TODO: Implement
-        pass
 
     def _and(self, value):
         """
@@ -806,7 +765,8 @@ class Cpu(object):
 
     def _op_2a(self):
         # LD A, (HL+)
-        pass
+        self.a = self.mmu.read_byte((self.h << 8) + self.l)
+        # TODO: INC (HL)
 
     def _op_2b(self):
         # DEC HL
@@ -887,7 +847,9 @@ class Cpu(object):
     def _op_36(self):
         # LD (HL), d8
         # Load byte value into memory address (HL)
-        pass
+        self.mmu.write_byte(self.pc)
+        self.pc += 1
+        # TODO: this may need to be updated. Will have to check whether it should be pc, or location in rom at pc
 
     def _op_37(self):
         # SCF
@@ -903,7 +865,8 @@ class Cpu(object):
 
     def _op_3a(self):
         # LD A, (HL-)
-        pass
+        self.a = self.mmu.read_byte((self.h << 8) + self.l)
+        # TODO: DEC (HL)
 
     def _op_3b(self):
         # DEC SP
@@ -1158,27 +1121,27 @@ class Cpu(object):
 
     def _op_70(self):
         # LD (HL), B
-        pass
+        self.mmu.write_byte((self.h << 8) + self.l, self.b)
 
     def _op_71(self):
         # LD (HL), C
-        pass
+        self.mmu.write_byte((self.h << 8) + self.l, self.c)
 
     def _op_72(self):
         # LD (HL), D
-        pass
+        self.mmu.write_byte((self.h << 8) + self.l, self.d)
 
     def _op_73(self):
         # LD (HL), E
-        pass
+        self.mmu.write_byte((self.h << 8) + self.l, self.e)
 
     def _op_74(self):
         # LD (HL), H
-        pass
+        self.mmu.write_byte((self.h << 8) + self.l, self.h)
 
     def _op_75(self):
         # LD (HL), L
-        pass
+        self.mmu.write_byte((self.h << 8) + self.l, self.l)
 
     def _op_76(self):
         # HALT
@@ -1186,7 +1149,7 @@ class Cpu(object):
 
     def _op_77(self):
         # LD (HL), A
-        pass
+        self.mmu.write_byte((self.h << 8) + self.l, self.a)
 
     def _op_78(self):
         # LD A, B
@@ -1220,7 +1183,7 @@ class Cpu(object):
 
     def _op_7e(self):
         # LD A, (HL)
-        pass
+        self.a = self.mmu.read_byte((self.h << 8) + self.l)
 
     def _op_7f(self):
         # LD A, A
@@ -1260,35 +1223,35 @@ class Cpu(object):
 
     def _op_88(self):
         # ADC A, B
-        self._adc(self.b)
+        self._add(self.b + self.carry_flag)
 
     def _op_89(self):
         # ADC A, C
-        self._adc(self.c)
+        self._add(self.c + self.carry_flag)
 
     def _op_8a(self):
         # ADC A, D
-        self._adc(self.d)
+        self._add(self.d + self.carry_flag)
 
     def _op_8b(self):
         # ADC A, E
-        self._adc(self.e)
+        self._add(self.e + self.carry_flag)
 
     def _op_8c(self):
         # ADC A, H
-        self._adc(self.h)
+        self._add(self.h + self.carry_flag)
 
     def _op_8d(self):
         # ADC A, L
-        self._adc(self.l)
+        self._add(self.l + self.carry_flag)
 
     def _op_8e(self):
         # ADC A, (HL)
-        pass
+        self._add(self.mmu.read_byte((self.h << 8) + self.l) + self.carry_flag)
 
     def _op_8f(self):
         # ADC A, A
-        self._adc(self.a)
+        self._add(self.a + self.carry_flag)
 
     def _op_90(self):
         # SUB A, B
@@ -1316,7 +1279,7 @@ class Cpu(object):
 
     def _op_96(self):
         # SUB A, (HL)
-        self._sub(self.mmu.read_byte(self.h << 8 + self.l))
+        self._sub(self.mmu.read_byte((self.h << 8) + self.l))
 
     def _op_97(self):
         # SUB A, A
@@ -1324,35 +1287,36 @@ class Cpu(object):
 
     def _op_98(self):
         # SBC A, B
-        pass
+        self._sub(self.b + self.carry_flag)
 
     def _op_99(self):
         # SBC A, C
-        pass
+        self._sub(self.c + self.carry_flag)
 
     def _op_9a(self):
         # SBC A, D
-        pass
+        self._sub(self.d + self.carry_flag)
 
     def _op_9b(self):
         # SBC A, E
-        pass
+        self._sub(self.e + self.carry_flag)
 
     def _op_9c(self):
         # SBC A, H
-        pass
+        self._sub(self.h + self.carry_flag)
 
     def _op_9d(self):
         # SBC A, L
-        pass
+        self._sub(self.l + self.carry_flag)
 
     def _op_9e(self):
         # SBC A, (HL)
-        pass
+        self._sub(self.mmu.read_byte((self.h << 8) + self.l) + self.carry_flag)
 
     def _op_9f(self):
         # SBC A, A
-        pass
+        # TODO: May be able to optimize this if we care
+        self._sub(self.a + self.carry_flag)
 
     def _op_a0(self):
         # AND B
@@ -1512,7 +1476,8 @@ class Cpu(object):
 
     def _op_c6(self):
         # ADD A, d8
-        pass
+        self._add(self.mmu.read_byte(self.pc))
+        self.pc += 1
 
     def _op_c7(self):
         # RST 00H
@@ -1576,7 +1541,8 @@ class Cpu(object):
 
     def _op_d6(self):
         # SUB d8
-        pass
+        self._sub(self.mmu.read_byte(self.pc))
+        self.pc += 1
 
     def _op_d7(self):
         # RST 10H
@@ -1608,7 +1574,8 @@ class Cpu(object):
 
     def _op_de(self):
         # SBC A, d8
-        pass
+        self._sub(self.mmu.read_byte(self.pc) + self.carry_flag)
+        self.pc += 1
 
     def _op_df(self):
         # RST 18H
@@ -1624,7 +1591,7 @@ class Cpu(object):
 
     def _op_e2(self):
         # LD (C), A
-        pass
+        self.mmu.write_byte((0xff00 + self.c), self.a)
 
     def _op_e3(self):
         # NOT IMP
@@ -1689,7 +1656,7 @@ class Cpu(object):
 
     def _op_f2(self):
         # LD A, (C)
-        pass
+        self.a = self.mmu.read_byte(0xff00 + self.c)
 
     def _op_f3(self):
         # DI

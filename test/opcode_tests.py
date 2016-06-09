@@ -74,8 +74,13 @@ class TestArithmeticOpcodes(unittest.TestCase):
 
     def test_indirect_add(self):
         self.cpu._op_86()
+        self.assertEqual(self.cpu.a, 0xff)
+        self.assertEqual(self.cpu.hc_flag, 0)
+
         self.cpu._op_c6()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.a, 0xfe)
+        self.assertEqual(self.cpu.carry_flag, 1)
+        self.assertEqual(self.cpu.hc_flag, 1)
 
     def test_indirect_adc(self):
         self.cpu._op_8e()
@@ -83,17 +88,42 @@ class TestArithmeticOpcodes(unittest.TestCase):
         self.assertTrue(False)
 
     def test_direct_sub(self):
+        self.cpu.a = 1
+        self.cpu.b = 1
+        self.cpu.c = 1
         self.cpu._op_90()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.sub_flag, 1)
+        self.assertEqual(self.cpu.zero_flag, 1)
+
+        self.cpu._op_91()
 
     def test_direct_sbc(self):
         self.cpu._op_98()
         self.assertTrue(False)
 
     def test_indirect_sub(self):
+        self.cpu.a = 0xff
         self.cpu._op_96()
-        self.cpu._op_d6()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.zero_flag, 1)
+        self.assertEqual(self.cpu.sub_flag, 1)
+
+        self.cpu._op_96()
+        self.assertEqual(self.cpu.a, 0x01)
+        self.assertEqual(self.cpu.zero_flag, 0)
+        self.assertEqual(self.cpu.sub_flag, 1)
+        self.assertEqual(self.cpu.hc_flag, 1)
+        self.assertEqual(self.cpu.carry_flag, 1)
+
+        self.cpu.a = 0xff
+        self.cpu.pc = 0  # Just to be sure
+        self.cpu._op_d6()  # subtracts value in memory at location of current PC from A
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.pc, 1)
+        self.assertEqual(self.cpu.zero_flag, 1)
+        self.assertEqual(self.cpu.sub_flag, 1)
+        self.assertEqual(self.cpu.carry_flag, 0)
+        self.assertEqual(self.cpu.hc_flag, 0)
 
     def test_indirect_sbc(self):
         self.cpu._op_9e()
