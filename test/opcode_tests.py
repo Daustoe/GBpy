@@ -83,9 +83,20 @@ class TestArithmeticOpcodes(unittest.TestCase):
         self.assertEqual(self.cpu.hc_flag, 1)
 
     def test_indirect_adc(self):
+        self.cpu.a = 1
+        self.cpu.sub_flag = 1
         self.cpu._op_8e()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.zero_flag, 1)
+        self.assertEqual(self.cpu.sub_flag, 0)
+        self.assertEqual(self.cpu.carry_flag, 1)
+        self.assertEqual(self.cpu.hc_flag, 1)
+
         self.cpu._op_ce()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.a, 1)
+        self.assertEqual(self.cpu.zero_flag, 0)
+        self.assertEqual(self.cpu.carry_flag, 0)
+        self.assertEqual(self.cpu.hc_flag, 0)
 
     def test_direct_sub(self):
         self.cpu.a = 1

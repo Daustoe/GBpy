@@ -725,6 +725,7 @@ class Cpu(object):
 
     def _op_22(self):
         # LD (HL+), A
+        # TODO: is this increment HL or increment memory at addr HL?
         self.a = self.mmu.read_byte((self.h << 8) + self.l)
         self.l = (self.l + 1) & 0xff
         if self.l == 0:
@@ -1509,7 +1510,9 @@ class Cpu(object):
 
     def _op_ce(self):
         # ADC A, d8
-        pass
+        # TODO: read from rom at location self.pc for value? Or self.pc as value?
+        self._add(self.pc + self.carry_flag)
+        self.pc += 1
 
     def _op_cf(self):
         # RST 08H
