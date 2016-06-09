@@ -98,8 +98,13 @@ class TestArithmeticOpcodes(unittest.TestCase):
         self.cpu._op_91()
 
     def test_direct_sbc(self):
+        self.cpu.b = 1
         self.cpu._op_98()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.a, 0xff)
+        self.assertEqual(self.cpu.sub_flag, 1)
+        self.assertEqual(self.cpu.zero_flag, 0)
+        self.assertEqual(self.cpu.carry_flag, 1)
+        self.assertEqual(self.cpu.hc_flag, 1)
 
     def test_indirect_sub(self):
         self.cpu.a = 0xff
@@ -127,8 +132,20 @@ class TestArithmeticOpcodes(unittest.TestCase):
 
     def test_indirect_sbc(self):
         self.cpu._op_9e()
+        self.assertEqual(self.cpu.a, 0x01)
+        self.assertEqual(self.cpu.carry_flag, 1)
+        self.assertEqual(self.cpu.hc_flag, 1)
+        self.assertEqual(self.cpu.zero_flag, 0)
+        self.assertEqual(self.cpu.sub_flag, 1)
+
+        self.cpu.pc = 1
         self.cpu._op_de()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.a, 0)  # Carry flag is set, so 1-1 = 0
+        self.assertEqual(self.cpu.carry_flag, 0)
+        self.assertEqual(self.cpu.zero_flag, 1)
+        self.assertEqual(self.cpu.hc_flag, 0)
+        self.assertEqual(self.cpu.sub_flag, 1)
+
 
     def test_increment(self):
         self.cpu._op_04()
