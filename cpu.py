@@ -809,7 +809,19 @@ class Cpu(object):
         self.m = 2
 
     def _op_27(self):
-        # DAA
+        """
+        DAA
+        Decimal adjust register A.
+        This instruction adjusts register A so that the correct representation of Binary Coded Decimal (BCD)
+        is obtained.
+
+        Flags affected:
+        Z - Set if register A is zero
+        N - no affected
+        H - set to 0
+        C - set if register carries over 0xff
+        :return:
+        """
         pass
 
     def _op_28(self):
@@ -919,8 +931,20 @@ class Cpu(object):
         # TODO: this may need to be updated. Will have to check whether it should be pc, or location in rom at pc
 
     def _op_37(self):
-        # SCF
-        pass
+        """
+        SCF
+        Set carry flag.
+
+        Flags affected:
+        Z - not affected
+        N - set to zero
+        H - set to zero
+        C - set to 1
+        :return:
+        """
+        self.carry_flag = 1
+        self.hc_flag = 0
+        self.sub_flag = 0
 
     def _op_38(self):
         """
@@ -960,8 +984,21 @@ class Cpu(object):
         self.m = 2
 
     def _op_3f(self):
-        # CCF
-        pass
+        """
+        Complement carry flag.
+        If C flag is set, then reset it.
+        If C flag is reset, then set it.
+
+        Flags affected:
+        Z - no affected
+        N - set to 0
+        H - set to 0
+        C - complemented
+        :return:
+        """
+        self.sub_flag = 0
+        self.hc_flag = 0
+        self.carry_flag = 1 if self.carry_flag == 0 else 0
 
     def _op_40(self):
         # LD B, B
@@ -1217,6 +1254,7 @@ class Cpu(object):
 
     def _op_76(self):
         # HALT
+        # TODO: Implement once we have started working on cycle routines
         pass
 
     def _op_77(self):
