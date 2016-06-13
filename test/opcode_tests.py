@@ -323,19 +323,30 @@ class TestShiftAndRotateOpcodes(unittest.TestCase):
     def test_rlca(self):
         self.cpu.a = 0x80  # 1000 0001
         self.cpu._op_07()
+        self.assertEqual(self.cpu.a, 1)
+        self.assertEqual(self.cpu.carry_flag, 1)
+        self.assertEqual(self.cpu.zero_flag, 0)
+
+    def test_rla(self):
+        self.cpu.a = 0x80
+        self.cpu._op_17()
         self.assertEqual(self.cpu.a, 0)
         self.assertEqual(self.cpu.carry_flag, 1)
         self.assertEqual(self.cpu.zero_flag, 1)
 
-    def test_rla(self):
-        self.cpu._op_17()
-        self.assertTrue(False)
-
     def test_rrca(self):
-        self.assertTrue(False)
+        self.cpu.a = 1
+        self.cpu._op_0f()
+        self.assertEqual(self.cpu.a, 0x80)
+        self.assertEqual(self.cpu.carry_flag, 1)
+        self.assertEqual(self.cpu.zero_flag, 0)
 
     def test_rra(self):
-        self.assertTrue(False)
+        self.cpu.a = 1
+        self.cpu._op_1f()
+        self.assertEqual(self.cpu.a, 0x0)
+        self.assertEqual(self.cpu.carry_flag, 1)
+        self.assertEqual(self.cpu.zero_flag, 1)
 
     def test_rlc(self):
         # TODO: part of extended opcodes

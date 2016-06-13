@@ -633,11 +633,21 @@ class Cpu(object):
     def _op_0f(self):
         """
         RRCA
+        Rotate A right. Old bit 0 to Carry flag.
+
+        Flags affected:
+        Z - set if result is zero
+        N - set to 0
+        H - set to 0
+        C - contains old bit 0 data
         0x0f
         :return:
         """
         self.carry_flag = self.a & 0x1
-        self.a = (self.a >> 1) & 0xff
+        self.a = ((self.a >> 1) & 0xff) | (self.carry_flag * 0x80)
+        self.sub_flag = 0
+        self.hc_flag = 0
+        self.zero_flag = 1 if self.a == 0 else 0
 
 
     def _op_10(self):
@@ -731,8 +741,23 @@ class Cpu(object):
         self.m = 2
 
     def _op_1f(self):
-        # RRA
-        pass
+        """
+        RRA
+        Rotate A right through Carry Flag.
+
+        Flags affected:
+        Z - set if result is zero
+        N - set to 0
+        H - set to 0
+        C - contains old bit 0 data
+        :return:
+        """
+        low_bit = self.a & 0x1
+        self.a = ((self.a >> 1) & 0xff) | (self.carry_flag * 0x80)
+        self.carry_flag = low_bit
+        self.zero_flag = 1 if self.a == 0 else 0
+        self.sub_flag = 0
+        self.hc_flag = 0
 
     def _op_20(self):
         # JR NZ, r8
