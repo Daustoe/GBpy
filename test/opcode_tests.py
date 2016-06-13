@@ -376,5 +376,65 @@ class TestShiftAndRotateOpcodes(unittest.TestCase):
         # TODO: part of extended opcodes
         self.assertTrue(False)
 
+
+class TestJumpOpcodes(unittest.TestCase):
+    def setUp(self):
+        self.cpu = Cpu()
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
+
+    def test_jump_to_addr_nn(self):
+        self.cpu._op_c3()
+        self.assertEqual(self.cpu.pc, 0xff00)
+
+    def test_jump_to_addr_if(self):
+        self.cpu._op_c2()
+        self.assertEqual(self.cpu.pc, 0xff00)
+        self.assertEqual(self.cpu.zero_flag, 0)
+
+        self.cpu.pc = 0
+        self.cpu.zero_flag = 1
+        self.cpu._op_ca()
+        self.assertEqual(self.cpu.pc, 0xff00)
+
+        self.cpu.pc = 0
+        self.cpu._op_d2()
+        self.assertEqual(self.cpu.pc, 0xff00)
+        self.assertEqual(self.cpu.carry_flag, 0)
+
+        self.cpu.pc = 0
+        self.cpu.carry_flag = 1
+        self.cpu._op_da()
+        self.assertEqual(self.cpu.pc, 0xff00)
+
+    def test_jump_to_address_in_HL(self):
+        self.cpu.h = 0
+        self.cpu.l = 0x41
+        self.cpu._op_e9()
+        self.assertEqual(self.cpu.pc, 0x24)
+
+    def test_jump_to_addr_add_n(self):
+        self.cpu._op_18()
+        self.assertEqual(self.cpu.pc, 0xff)
+
+    def test_jump_to_add_add_n_if(self):
+        self.cpu._op_20()
+        self.assertEqual(self.cpu.pc, 0xff)
+        self.assertEqual(self.cpu.zero_flag, 0)
+
+        self.cpu.pc = 0
+        self.cpu.zero_flag = 1
+        self.cpu._op_28()
+        self.assertEqual(self.cpu.pc, 0xff)
+
+        self.cpu.pc = 0
+        self.cpu._op_30()
+        self.assertEqual(self.cpu.pc, 0xff)
+        self.assertEqual(self.cpu.carry_flag, 0)
+
+        self.cpu.pc = 0
+        self.cpu.carry_flag = 1
+        self.cpu._op_38()
+        self.assertEqual(self.cpu.pc, 0xff)
+
 if __name__ == '__main__':
     unittest.main()

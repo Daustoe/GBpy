@@ -710,8 +710,12 @@ class Cpu(object):
         self.hc_flag = 0
 
     def _op_18(self):
-        # JR r8
-        pass
+        """
+        JR n
+        Add n to current address (pc) and jump to it.
+        :return:
+        """
+        self.pc += self.mmu.read_byte(self.pc)
 
     def _op_19(self):
         # ADD HL, DE
@@ -760,8 +764,13 @@ class Cpu(object):
         self.hc_flag = 0
 
     def _op_20(self):
-        # JR NZ, r8
-        pass
+        """
+        JR NZ, nn
+        If zero flag == 0 then add n to current address and jump to it.
+        :return:
+        """
+        if self.zero_flag == 0:
+            self._op_18()
 
     def _op_21(self):
         # LD HL, d16
@@ -804,8 +813,13 @@ class Cpu(object):
         pass
 
     def _op_28(self):
-        # JR Z, r8
-        pass
+        """
+        JR NZ, nn
+        If zero flag == 1 then add n to current address and jump to it.
+        :return:
+        """
+        if self.zero_flag:
+            self._op_18()
 
     def _op_29(self):
         # ADD HL, HL
@@ -844,8 +858,13 @@ class Cpu(object):
         self.m = 1
 
     def _op_30(self):
-        # JR NC, r8
-        pass
+        """
+        JR NZ, nn
+        If carry flag == 0 then add n to current address and jump to it.
+        :return:
+        """
+        if self.carry_flag == 0:
+            self._op_18()
 
     def _op_31(self):
         # LD SP, d16
@@ -904,8 +923,13 @@ class Cpu(object):
         pass
 
     def _op_38(self):
-        # JR C, r8
-        pass
+        """
+        JR NZ, nn
+        If carr flag == 1 then add n to current address and jump to it.
+        :return:
+        """
+        if self.carry_flag:
+            self._op_18()
 
     def _op_39(self):
         # ADD HL, SP
@@ -1507,12 +1531,21 @@ class Cpu(object):
         pass
 
     def _op_c2(self):
-        # JP NZ, a16
-        pass
+        """
+        JP NZ, nn
+        Jump to address nn if zero flag == 0
+        :return:
+        """
+        if self.zero_flag == 0:
+            self._op_c3()
 
     def _op_c3(self):
-        # JP a16
-        pass
+        """
+        JP nn
+        Jump to address nn. nn is two next bytes read from memory at current program counter (pc)
+        :return:
+        """
+        self.pc = (self.mmu.read_byte(self.pc) << 8) + self.mmu.read_byte(self.pc + 1)
 
     def _op_c4(self):
         # CALL NZ, a16
@@ -1540,8 +1573,13 @@ class Cpu(object):
         pass
 
     def _op_ca(self):
-        # JP Z, a16
-        pass
+        """
+        JP Z, nn
+        Jump to address nn if zero flag == 1
+        :return:
+        """
+        if self.zero_flag:
+            self._op_c3()
 
     def _op_cb(self):
         # map to CB table
@@ -1574,8 +1612,13 @@ class Cpu(object):
         pass
 
     def _op_d2(self):
-        # JP NC, a16
-        pass
+        """
+        JP NC, nn
+        Jump to address nn if carry flag == 0
+        :return:
+        """
+        if self.carry_flag == 0:
+            self._op_c3()
 
     def _op_d3(self):
         # NOT IMP
@@ -1607,8 +1650,13 @@ class Cpu(object):
         pass
 
     def _op_da(self):
-        # JP C, a16
-        pass
+        """
+        JP C, nn
+        Jump to address nn if carry flag == 1
+        :return:
+        """
+        if self.carry_flag:
+            self._op_c3()
 
     def _op_db(self):
         # NOT IMP
@@ -1669,8 +1717,12 @@ class Cpu(object):
         pass
 
     def _op_e9(self):
-        # JP (HL)
-        pass
+        """
+        JP (HL)
+        Jump to address contained in HL
+        :return:
+        """
+        self.pc = self.mmu.read_byte((self.h << 8) + self.l)
 
     def _op_ea(self):
         # LD (a16), A
