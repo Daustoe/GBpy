@@ -539,10 +539,18 @@ class Cpu(object):
     def _op_07(self):
         """
         RLCA
+        Rotate A left. Old bit 7 to Carry flag.
+
+        Flags affected:
+        Z - set if result is zero
+        N - set to 0
+        H - set to 0
+        C - Contains old bit 7 data
+
         0x07
         :return:
         """
-        self.carry_flag = (self.a & 0x80) / 0x80
+        self.carry_flag = (self.a & 0x80) // 0x80
         self.a = ((self.a << 1) & 0xff) | self.carry_flag
         self.zero_flag = 1 if self.a == 0 else 0
         self.sub_flag = 0
@@ -679,10 +687,17 @@ class Cpu(object):
         self.m = 2
 
     def _op_17(self):
-        # RLA
-        high_bit = (self.a & 0x80) / 0x80
+        """
+        RLA
+        Rotate A left through Carry flag.
+        :return:
+        """
+        high_bit = (self.a & 0x80) // 0x80
         self.a = ((self.a << 1) & 0xff) | self.carry_flag
         self.carry_flag = high_bit
+        self.zero_flag = 1 if self.a == 0 else 0
+        self.sub_flag = 0
+        self.hc_flag = 0
 
     def _op_18(self):
         # JR r8

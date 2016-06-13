@@ -315,5 +315,55 @@ class TestLoadOpcodes(unittest.TestCase):
         self.assertEqual(self.cpu.h, 0xff)
 
 
+class TestShiftAndRotateOpcodes(unittest.TestCase):
+    def setUp(self):
+        self.cpu = Cpu()
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
+
+    def test_rlca(self):
+        self.cpu.a = 0x80  # 1000 0001
+        self.cpu._op_07()
+        self.assertEqual(self.cpu.a, 0)
+        self.assertEqual(self.cpu.carry_flag, 1)
+        self.assertEqual(self.cpu.zero_flag, 1)
+
+    def test_rla(self):
+        self.cpu._op_17()
+        self.assertTrue(False)
+
+    def test_rrca(self):
+        self.assertTrue(False)
+
+    def test_rra(self):
+        self.assertTrue(False)
+
+    def test_rlc(self):
+        # TODO: part of extended opcodes
+        self.assertTrue(False)
+
+    def test_rl(self):
+        # TODO: part of extended opcodes
+        self.assertTrue(False)
+
+    def test_rrc(self):
+        # TODO: part of extended opcodes
+        self.assertTrue(False)
+
+    def test_rr(self):
+        # TODO: part of extended opcodes
+        self.assertTrue(False)
+
+    def test_sla(self):
+        # TODO: part of extended opcodes
+        self.assertTrue(False)
+
+    def test_sra(self):
+        # TODO: part of extended opcodes
+        self.assertTrue(False)
+
+    def test_srl(self):
+        # TODO: part of extended opcodes
+        self.assertTrue(False)
+
 if __name__ == '__main__':
     unittest.main()
