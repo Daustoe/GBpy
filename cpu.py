@@ -1565,8 +1565,14 @@ class Cpu(object):
         pass
 
     def _op_c1(self):
-        # POP BC
-        pass
+        """
+        POP BC
+        Pop two bytes off stack into register pair BC. Increment Stack Pointer (SP) twice.
+        :return:
+        """
+        self.b = self.mmu.read_byte(self.sp + 1)
+        self.c = self.mmu.read_byte(self.sp)
+        self.sp = (self.sp + 2) & 0xffff
 
     def _op_c2(self):
         """
@@ -1646,8 +1652,14 @@ class Cpu(object):
         pass
 
     def _op_d1(self):
-        # POP DE
-        pass
+        """
+        POP DE
+        Pop two bytes off stack into register pair BC. Increment Stack Pointer (SP) twice.
+        :return:
+        """
+        self.d = self.mmu.read_byte(self.sp + 1)
+        self.e = self.mmu.read_byte(self.sp)
+        self.sp = (self.sp + 2) & 0xffff
 
     def _op_d2(self):
         """
@@ -1722,8 +1734,14 @@ class Cpu(object):
         pass
 
     def _op_e1(self):
-        # POP HL
-        pass
+        """
+        POP HL
+        Pop two bytes off stack into register pair BC. Increment Stack Pointer (SP) twice.
+        :return:
+        """
+        self.h = self.mmu.read_byte(self.sp + 1)
+        self.l = self.mmu.read_byte(self.sp)
+        self.sp = (self.sp + 2) & 0xffff
 
     def _op_e2(self):
         # LD (C), A
@@ -1791,8 +1809,15 @@ class Cpu(object):
         pass
 
     def _op_f1(self):
-        # POP AF
-        pass
+        """
+        POP BC
+        Pop two bytes off stack into register pair BC. Increment Stack Pointer (SP) twice.
+        :return:
+        """
+        self.a = self.mmu.read_byte(self.sp + 1)
+        self.f = self.mmu.read_byte(self.sp) & 0xf0  # flags only hold four bits here
+        # TODO: need to translate this read into our separate flags
+        self.sp = (self.sp + 2) & 0xffff
 
     def _op_f2(self):
         # LD A, (C)
