@@ -1607,8 +1607,15 @@ class Cpu(object):
             self._op_cd()
 
     def _op_c5(self):
-        # PUSH BC
-        pass
+        """
+        PUSH BC
+        Push register pair BC onto stack.
+        Decrement Stack Pointer (SP) twice.
+        :return:
+        """
+        self.sp = (self.sp - 2) & 0xffff
+        self.mmu.write_byte(self.sp, self.c)
+        self.mmu.write_byte(self.sp + 1, self.b)
 
     def _op_c6(self):
         # ADD A, d8
@@ -1713,7 +1720,10 @@ class Cpu(object):
             self._op_c3()
 
     def _op_d3(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_d4(self):
@@ -1726,8 +1736,15 @@ class Cpu(object):
             self._op_cd()
 
     def _op_d5(self):
-        # PUSH DE
-        pass
+        """
+        PUSH DE
+        Push register pair DE onto stack.
+        Decrement Stack Pointer (SP) twice.
+        :return:
+        """
+        self.sp = (self.sp - 2) & 0xffff
+        self.mmu.write_byte(self.sp, self.e)
+        self.mmu.write_byte(self.sp + 1, self.d)
 
     def _op_d6(self):
         # SUB d8
@@ -1766,7 +1783,10 @@ class Cpu(object):
             self._op_c3()
 
     def _op_db(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_dc(self):
@@ -1779,7 +1799,10 @@ class Cpu(object):
             self._op_cd()
 
     def _op_dd(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_de(self):
@@ -1792,8 +1815,14 @@ class Cpu(object):
         self._rst(0x18)
 
     def _op_e0(self):
-        # LDH (a8), A
-        pass
+        """
+        LDH (n), A
+        Load A into memory address 0xff00 + n
+        :return:
+        """
+        offset = self.mmu.read_byte(self.pc)
+        self.pc += 1
+        self.mmu.write_byte(0xff00 + offset, self.a)
 
     def _op_e1(self):
         """
@@ -1806,32 +1835,74 @@ class Cpu(object):
         self.sp = (self.sp + 2) & 0xffff
 
     def _op_e2(self):
-        # LD (C), A
+        """
+        LD (C), A
+        Put A into address 0xff00 + register C
+        :return:
+        """
         self.mmu.write_byte((0xff00 + self.c), self.a)
 
     def _op_e3(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_e4(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_e5(self):
-        # PUSH HL
-        pass
+        """
+        PUSH HL
+        Push register pair HL onto stack.
+        Decrement Stack Pointer (SP) twice.
+        :return:
+        """
+        self.sp = (self.sp - 2) & 0xffff
+        self.mmu.write_byte(self.sp, self.l)
+        self.mmu.write_byte(self.sp + 1, self.h)
 
     def _op_e6(self):
-        # AND d8
-        self._and(self.mmu.read_byte(self.pc))
+        """
+        AND n
+        Logically AND n with A, result in A.
+
+        Flags affected:
+        Z - set if result is zero
+        N - reset to 0
+        H - set to 0
+        C - reset to 0
+        :return:
+        """
+        self._and(self.mmu.read_byte(self.pc))  # flags taken care of in _and method
         self.pc += 1
 
     def _op_e7(self):
-        # RST 20H
+        """
+        RST 0x20
+        Push present address onto stack.
+        Jump to address 0x0020
+        :return:
+        """
         self._rst(0x20)
 
     def _op_e8(self):
-        # ADD SP, r8
+        """
+        ADD SP, n
+        Add n to Stack Pointer (SP)
+
+        Flags affected:
+        Z - reset to 0
+        N - reset to 0
+        H - set or reset according to operation
+        C - set or reset according to operation
+        :return:
+        """
         pass
 
     def _op_e9(self):
@@ -1843,19 +1914,35 @@ class Cpu(object):
         self.pc = self.mmu.read_byte((self.h << 8) + self.l)
 
     def _op_ea(self):
-        # LD (a16), A
-        pass
+        """
+        LD (nn), A
+        Put value A into memory range given by next two bytes read from pc.
+        :return:
+        """
+        addr = self.mmu.read_byte(self.pc) << 8
+        self.pc += 1
+        addr |= self.mmu.read_byte(self.pc)
+        self.mmu.write_byte(addr, self.a)
 
     def _op_eb(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_ec(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_ed(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_ee(self):
@@ -1863,7 +1950,12 @@ class Cpu(object):
         pass
 
     def _op_ef(self):
-        # RST 28H
+        """
+        RST 0x28
+        Push present address onto stack.
+        Jump to address 0x0028
+        :return:
+        """
         self._rst(0x28)
 
     def _op_f0(self):
@@ -1888,10 +1980,10 @@ class Cpu(object):
     def _op_f3(self):
         """
         DI
-        Disable 
+        Disable
         :return:
         """
-        pass
+        self.interrupts = False
 
     def _op_f4(self):
         """
@@ -1901,15 +1993,28 @@ class Cpu(object):
         pass
 
     def _op_f5(self):
-        # PUSH AF
-        pass
+        """
+        PUSH AF
+        Push register pair AF onto stack.
+        Decrement Stack Pointer (SP) twice.
+        :return:
+        """
+        # TODO: need to find a way to implement pushing/popping flags register
+        self.sp = (self.sp - 2) & 0xffff
+        self.mmu.write_byte(self.sp, self.f)
+        self.mmu.write_byte(self.sp + 1, self.a)
 
     def _op_f6(self):
         # OR d8
         pass
 
     def _op_f7(self):
-        # RST 30H
+        """
+        RST 0x30
+        Push present address onto stack.
+        Jump to address 0x0030
+        :return:
+        """
         self._rst(0x30)
 
     def _op_f8(self):
@@ -1952,5 +2057,10 @@ class Cpu(object):
         self.pc += 1
 
     def _op_ff(self):
-        # RST 38H
+        """
+        RST 0x38
+        Push present address onto stack.
+        Jump to address 0x0038
+        :return:
+        """
         self._rst(0x38)
