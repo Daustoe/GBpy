@@ -13,6 +13,7 @@ class Cpu(object):
         self.sp = 0  # Stack Pointer
         self.mmu = MMU()  # Memory Management Unit
         self.opcode = 0
+        self.interrupts = False
 
         # Registers
         self.a = 0
@@ -1561,8 +1562,13 @@ class Cpu(object):
         self.carry_flag = 0
 
     def _op_c0(self):
-        # RET NZ
-        pass
+        """
+        RET NZ
+        Return if Zero flag is set to 0
+        :return:
+        """
+        if self.zero_flag == 0:
+            self._op_c9()
 
     def _op_c1(self):
         """
@@ -1592,8 +1598,13 @@ class Cpu(object):
         self.pc = (self.mmu.read_byte(self.pc) << 8) + self.mmu.read_byte(self.pc + 1)
 
     def _op_c4(self):
-        # CALL NZ, a16
-        pass
+        """
+        CALL NZ, nn
+        Call address nn if Zero flag is set to 0.
+        :return:
+        """
+        if self.zero_flag == 0:
+            self._op_cd()
 
     def _op_c5(self):
         # PUSH BC
@@ -1609,12 +1620,24 @@ class Cpu(object):
         self._rst(0x0)
 
     def _op_c8(self):
-        # RET Z
-        pass
+        """
+        RET Z
+        Return if Zero flag is set to 1
+        :return:
+        """
+        if self.zero_flag:
+            self._op_c9()
 
     def _op_c9(self):
-        # RET
-        pass
+        """
+        RET
+        Pop two bytes from stack and jump to that address.
+        :return:
+        """
+        low = self.mmu.read_byte(self.sp)
+        high = self.mmu.read_byte(self.sp + 1)
+        self.sp = (self.sp + 2) & 0xffff
+        self.pc = (high << 8) | low
 
     def _op_ca(self):
         """
@@ -1630,12 +1653,26 @@ class Cpu(object):
         pass
 
     def _op_cc(self):
-        # CALL Z, a16
-        pass
+        """
+        CALL Z,nn
+        Call address nn if Zero flag is set to 1
+        :return:
+        """
+        if self.zero_flag:
+            self._op_cd()
 
     def _op_cd(self):
-        # CALL a16
-        pass
+        """
+        CALL nn
+        Push address of next instruction onto stack and then jump to address nn.
+        :return:
+        """
+        addr = self.pc
+        self.sp = (self.sp - 2) & 0xffff
+        self.mmu.write_byte(self.sp, self.pc & 0xff)
+        self.mmu.write_byte(self.sp + 1, self.pc >> 8)
+        # TODO: this may be an incorrect implementation
+        self.pc = addr
 
     def _op_ce(self):
         # ADC A, d8
@@ -1648,8 +1685,13 @@ class Cpu(object):
         self._rst(0x8)
 
     def _op_d0(self):
-        # RET NC
-        pass
+        """
+        RET NC
+        Return if Carr flag is set to 0
+        :return:
+        """
+        if self.carry_flag == 0:
+            self._op_c9()
 
     def _op_d1(self):
         """
@@ -1675,8 +1717,13 @@ class Cpu(object):
         pass
 
     def _op_d4(self):
-        # CALL NC, a16
-        pass
+        """
+        CALL NC, nn
+        Call address nn if Carry flag is set to 0.
+        :return:
+        """
+        if self.carry_flag == 0:
+            self._op_cd()
 
     def _op_d5(self):
         # PUSH DE
@@ -1692,12 +1739,22 @@ class Cpu(object):
         self._rst(0x10)
 
     def _op_d8(self):
-        # RET C
-        pass
+        """
+        RET C
+        Return if Carry flag is set to 1
+        :return:
+        """
+        if self.carry_flag:
+            self._op_c9()
 
     def _op_d9(self):
-        # RETI
-        pass
+        """
+        RETI
+        Return
+        :return:
+        """
+        self._op_c9()
+        self.interrupts = True
 
     def _op_da(self):
         """
@@ -1713,8 +1770,13 @@ class Cpu(object):
         pass
 
     def _op_dc(self):
-        # CALL C, a16
-        pass
+        """
+        CALL C, nn
+        Call address nn if Carry flag is set to 1.
+        :return:
+        """
+        if self.carry_flag:
+            self._op_cd()
 
     def _op_dd(self):
         # NOT IMP
@@ -1824,11 +1886,18 @@ class Cpu(object):
         self.a = self.mmu.read_byte(0xff00 + self.c)
 
     def _op_f3(self):
-        # DI
+        """
+        DI
+        Disable 
+        :return:
+        """
         pass
 
     def _op_f4(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_f5(self):
@@ -1848,8 +1917,12 @@ class Cpu(object):
         pass
 
     def _op_f9(self):
-        # LD SP, HL
-        pass
+        """
+        LD SP, HL
+        Put HL into Stack Pointer (SP)
+        :return:
+        """
+        self.sp = (self.h << 8) | self.l
 
     def _op_fa(self):
         # LD A, (a16)
@@ -1860,11 +1933,17 @@ class Cpu(object):
         pass
 
     def _op_fc(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_fd(self):
-        # NOT IMP
+        """
+        Not Implemented
+        :return:
+        """
         pass
 
     def _op_fe(self):
