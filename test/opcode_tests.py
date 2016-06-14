@@ -436,5 +436,54 @@ class TestJumpOpcodes(unittest.TestCase):
         self.cpu._op_38()
         self.assertEqual(self.cpu.pc, 0xff)
 
+
+class TestCallOpcodes(unittest.TestCase):
+    def setUp(self):
+        self.cpu = Cpu()
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
+
+    def test_standard_call(self):
+        self.cpu._op_cd()
+        self.assertTrue(False)
+
+    def test_call_if(self):
+        self.cpu._op_c4()
+        self.cpu._op_cc()
+        self.cpu._op_d4()
+        self.cpu._op_dc()
+        self.assertTrue(False)
+
+class TestRetOpcodes(unittest.TestCase):
+    def setUp(self):
+        self.cpu = Cpu()
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
+
+    def test_standard_return(self):
+        self.cpu._op_c9()
+        self.assertTrue(False)
+
+    def test_return_if(self):
+        self.cpu._op_c0()
+        self.cpu._op_c8()
+        self.cpu._op_d0()
+        self.cpu._op_d8()
+        self.assertTrue(False)
+
+    def test_return_enable_interrupts(self):
+        self.cpu._op_d9()
+        self.assertTrue(False)
+
+
+class TestStackOpcodes(unittest.TestCase):
+    def setUp(self):
+        self.cpu = Cpu()
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
+
+    def test_push(self):
+        self.assertTrue(False)
+
+    def test_pop(self):
+        self.assertTrue(False)
+
 if __name__ == '__main__':
     unittest.main()
