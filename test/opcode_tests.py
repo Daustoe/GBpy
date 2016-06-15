@@ -453,6 +453,7 @@ class TestCallOpcodes(unittest.TestCase):
         self.cpu._op_dc()
         self.assertTrue(False)
 
+
 class TestRetOpcodes(unittest.TestCase):
     def setUp(self):
         self.cpu = Cpu()

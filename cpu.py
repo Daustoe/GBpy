@@ -728,8 +728,14 @@ class Cpu(object):
         self.m = 2
 
     def _op_1b(self):
-        # DEC DE
-        pass
+        """
+        DEC DE
+        Decrement register DE
+        :return:
+        """
+        self.e = (self.e - 1) & 0xff
+        if self.e == 0xff:
+            self.d = (self.d - 1) & 0xff
 
     def _op_1c(self):
         # INC E
@@ -835,8 +841,18 @@ class Cpu(object):
             self._op_18()
 
     def _op_29(self):
-        # ADD HL, HL
-        pass
+        """
+        ADD HL, HL
+        Add HL to HL
+
+        Flags affected:
+        Z - not affected
+        N - reset to 0
+        H - Set if carry from bit 11
+        C - Set if carry from bit 15
+        :return:
+        """
+        data = (self.h << 8) | self.l
 
     def _op_2a(self):
         # LD A, (HL+)
@@ -1070,7 +1086,7 @@ class Cpu(object):
 
     def _op_4e(self):
         # LD C, (HL)
-        pass
+        self.c = self.mmu.read_byte((self.h << 8) + self.l)
 
     def _op_4f(self):
         # LD C, A
@@ -1222,7 +1238,7 @@ class Cpu(object):
 
     def _op_6e(self):
         # LD L, (HL)
-        pass
+        self.l = self.mmu.read_byte((self.h << 8) + self.l)
 
     def _op_6f(self):
         # LD L, A
@@ -1657,6 +1673,7 @@ class Cpu(object):
 
     def _op_cb(self):
         # map to CB table
+        # TODO: implement CB extended table
         pass
 
     def _op_cc(self):
@@ -1903,7 +1920,20 @@ class Cpu(object):
         C - set or reset according to operation
         :return:
         """
-        pass
+        data = self.mmu.read_byte(self.pc)
+        self.pc += 1
+        self.zero_flag = 0
+        self.sub_flag = 0
+        if (self.sp & 0xf) + (data & 0xf) > 0xf:
+            self.hc_flag = 1
+        else:
+            self.hc_flag = 0
+        if (self.sp & 0xff) + (data & 0xff) > 0xff:
+            self.carry_flag = 1
+        else:
+            self.carry_flag = 0
+
+        self.sp = (self.sp + data) & 0xffff
 
     def _op_e9(self):
         """
@@ -1947,7 +1977,8 @@ class Cpu(object):
 
     def _op_ee(self):
         # XOR d8
-        pass
+        self._xor(self.mmu.read_byte(self.pc))
+        self.pc += 1
 
     def _op_ef(self):
         """
@@ -1960,7 +1991,9 @@ class Cpu(object):
 
     def _op_f0(self):
         # LDH A, (a8)
-        pass
+        offset = self.mmu.read_byte(self.pc)
+        self.pc += 1
+        self.a = self.mmu.read_byte(0xff00 | offset)
 
     def _op_f1(self):
         """
@@ -2006,7 +2039,8 @@ class Cpu(object):
 
     def _op_f6(self):
         # OR d8
-        pass
+        self._or(self.mmu.read_byte(self.pc))
+        self.pc += 1
 
     def _op_f7(self):
         """
@@ -2018,8 +2052,33 @@ class Cpu(object):
         self._rst(0x30)
 
     def _op_f8(self):
-        # LD HL, SP+r8
-        pass
+        """
+        LDHL SP, n
+        Put Stack Pointer (SP) + n effective address into HL.
+
+        Flags affected:
+        Z - reset to 0
+        N - reset to 0
+        H - set or reset according to operation
+        C - set or reset according to operation
+        :return:
+        """
+        offset = self.mmu.read_byte(self.pc)
+        self.pc += 1
+
+        addr = self.sp + offset
+        self.h = addr >> 8
+        self.l = addr & 0xff
+        self.zero_flag = 0
+        self.sub_flag = 0
+        if (self.sp & 0xf) + (offset & 0xf) > 0xf:
+            self.hc_flag = 1
+        else:
+            self.hc_flag = 0
+        if (self.sp & 0xff) + (offset & 0xff) > 0xff:
+            self.carry_flag = 1
+        else:
+            self.carry_flag = 0
 
     def _op_f9(self):
         """
@@ -2031,11 +2090,17 @@ class Cpu(object):
 
     def _op_fa(self):
         # LD A, (a16)
-        pass
+        self.a = self.mmu.read_word(self.pc)
+        self.pc += 2
 
     def _op_fb(self):
-        # EI
-        pass
+        """
+        EI
+        Enable interrupts, but not immediately. Interrupts are enabled after instruction after EI is executed.
+        :return:
+        """
+        # TODO: Need to wait one instruction then enable interrupts
+        self.interrupts = True
 
     def _op_fc(self):
         """
