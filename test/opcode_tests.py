@@ -441,10 +441,17 @@ class TestCallOpcodes(unittest.TestCase):
     def setUp(self):
         self.cpu = Cpu()
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
+        self.cpu.mmu.rom[0] = 0x1
+        self.cpu.mmu.rom[1] = 0xed
+        self.cpu.sp = 0xfffe
 
     def test_standard_call(self):
         self.cpu._op_cd()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.sp, 0xfffc)
+        self.assertEqual(self.cpu.pc, 1)
+        self.cpu._op_cd()
+        self.assertEqual(self.cpu.sp, 0xfffa)
+        self.assertEqual(self.cpu.pc, 0xed)
 
     def test_call_if(self):
         self.cpu._op_c4()
