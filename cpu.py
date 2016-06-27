@@ -570,12 +570,17 @@ class Cpu(object):
     def _op_09(self):
         """
         ADD HL, BC
-        0x09
+        Add register pair BC to HL.
+
+        Flags affected:
+        Z - Not affected
+        N - Reset to 0
+        H - Set if carry from bit 11
+        C - Set if carry from bit 15
         :return:
         """
         hl = (self.h << 8) + self.l
         bc = (self.b << 8) + self.c
-        # may need to do something with Zero flag here
         if hl + bc > 0xffff:
             self.carry_flag |= 1
         if (hl & 0x0fff) + (bc & 0x0fff) > 0x0fff:
@@ -719,8 +724,27 @@ class Cpu(object):
         self.pc += self.mmu.read_byte(self.pc)
 
     def _op_19(self):
-        # ADD HL, DE
-        pass
+        """
+        Add HL, DE
+        Add DE register pair to HL.
+
+        Flags affected:
+        Z - Not affected
+        N - Reset to 0
+        H - Set if carry from bit 11
+        C - Set if carry from bit 15
+        :return:
+        """
+        hl = (self.h << 8) + self.l
+        de = (self.d << 8) + self.e
+        if hl + de > 0xffff:
+            self.carry_flag |= 1
+        if (hl & 0x0fff) + (de & 0x0fff) > 0x0fff:
+            self.hc_flag |= 1
+        hl = (hl + de) & 0xffff
+        self.h = hl >> 8
+        self.l = hl & 0xff
+        self.m = 3
 
     def _op_1a(self):
         # LD A, (DE)
@@ -973,8 +997,26 @@ class Cpu(object):
             self._op_18()
 
     def _op_39(self):
-        # ADD HL, SP
-        pass
+        """
+        ADD HL, SP
+        Adds stack pointer to register pair HL.
+
+        Flags affected:
+        Z - Not affected
+        N - Reset to 0
+        H - Set if carry from bit 11
+        C - Set if carry from bit 15
+        :return:
+        """
+        hl = (self.h << 8) + self.l
+        if hl + self.sp > 0xffff:
+            self.carry_flag |= 1
+        if (hl & 0x0fff) + (self.sp & 0x0fff) > 0x0fff:
+            self.hc_flag |= 1
+        hl = (hl + self.sp) & 0xffff
+        self.h = hl >> 8
+        self.l = hl & 0xff
+        self.m = 3
 
     def _op_3a(self):
         # LD A, (HL-)

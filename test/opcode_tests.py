@@ -493,5 +493,15 @@ class TestStackOpcodes(unittest.TestCase):
     def test_pop(self):
         self.assertTrue(False)
 
+
+class TestMiscOpcodes(unittest.TestCase):
+    def setUp(self):
+        self.cpu = Cpu()
+        self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
+
+    def test_daa(self):
+        self.cpu._op_27()
+        self.assertTrue(False)
+
 if __name__ == '__main__':
     unittest.main()
