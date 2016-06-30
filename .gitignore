@@ -37,7 +37,8 @@ Icon
 .Trashes
 
 #python binaries
-.pyc
+__pycache__/
+*.pyc
 
 .idea/
 *.iml

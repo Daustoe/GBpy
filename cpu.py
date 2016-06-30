@@ -1,4 +1,3 @@
-from mmu import MMU
 __author__ = 'Clayton Powell'
 
 
@@ -7,11 +6,11 @@ class Cpu(object):
     Cpu class that emulates the GameBoy cpu for the emulator.
     """
 
-    def __init__(self):
+    def __init__(self, mmu):
         self.pc = 0  # Program Counter
         self.previous_pc = 0
         self.sp = 0  # Stack Pointer
-        self.mmu = MMU()  # Memory Management Unit
+        self.mmu = mmu  # Memory Management Unit
         self.opcode = 0
         self.interrupts = False
 
@@ -2535,3 +2534,771 @@ class Cpu(object):
         :return:
         """
         self._rst(0x38)
+
+    def _op_cb_00(self):
+        pass
+
+    def _op_cb_01(self):
+        pass
+
+    def _op_cb_02(self):
+        pass
+
+    def _op_cb_03(self):
+        pass
+
+    def _op_cb_04(self):
+        pass
+
+    def _op_cb_05(self):
+        pass
+
+    def _op_cb_06(self):
+        pass
+
+    def _op_cb_07(self):
+        pass
+
+    def _op_cb_08(self):
+        pass
+
+    def _op_cb_09(self):
+        pass
+
+    def _op_cb_0a(self):
+        pass
+
+    def _op_cb_0b(self):
+        pass
+
+    def _op_cb_0c(self):
+        pass
+
+    def _op_cb_0d(self):
+        pass
+
+    def _op_cb_0e(self):
+        pass
+
+    def _op_cb_0f(self):
+        pass
+
+    def _op_cb_10(self):
+        pass
+
+    def _op_cb_11(self):
+        pass
+
+    def _op_cb_12(self):
+        pass
+
+    def _op_cb_13(self):
+        pass
+
+    def _op_cb_14(self):
+        pass
+
+    def _op_cb_15(self):
+        pass
+
+    def _op_cb_16(self):
+        pass
+
+    def _op_cb_17(self):
+        pass
+
+    def _op_cb_18(self):
+        pass
+
+    def _op_cb_19(self):
+        pass
+
+    def _op_cb_1a(self):
+        pass
+
+    def _op_cb_1b(self):
+        pass
+
+    def _op_cb_1c(self):
+        pass
+
+    def _op_cb_1d(self):
+        pass
+
+    def _op_cb_1e(self):
+        pass
+
+    def _op_cb_1f(self):
+        pass
+
+    def _op_cb_20(self):
+        pass
+
+    def _op_cb_21(self):
+        pass
+
+    def _op_cb_22(self):
+        pass
+
+    def _op_cb_23(self):
+        pass
+
+    def _op_cb_24(self):
+        pass
+
+    def _op_cb_25(self):
+        pass
+
+    def _op_cb_26(self):
+        pass
+
+    def _op_cb_27(self):
+        pass
+
+    def _op_cb_28(self):
+        pass
+
+    def _op_cb_29(self):
+        pass
+
+    def _op_cb_2a(self):
+        pass
+
+    def _op_cb_2b(self):
+        pass
+
+    def _op_cb_2c(self):
+        pass
+
+    def _op_cb_2d(self):
+        pass
+
+    def _op_cb_2e(self):
+        pass
+
+    def _op_cb_2f(self):
+        pass
+
+    def _op_cb_30(self):
+        pass
+
+    def _op_cb_31(self):
+        pass
+
+    def _op_cb_32(self):
+        pass
+
+    def _op_cb_33(self):
+        pass
+
+    def _op_cb_34(self):
+        pass
+
+    def _op_cb_35(self):
+        pass
+
+    def _op_cb_36(self):
+        pass
+
+    def _op_cb_37(self):
+        pass
+
+    def _op_cb_38(self):
+        pass
+
+    def _op_cb_39(self):
+        pass
+
+    def _op_cb_3a(self):
+        pass
+
+    def _op_cb_3b(self):
+        pass
+
+    def _op_cb_3c(self):
+        pass
+
+    def _op_cb_3d(self):
+        pass
+
+    def _op_cb_3e(self):
+        pass
+
+    def _op_cb_3f(self):
+        pass
+
+    def _op_cb_40(self):
+        pass
+
+    def _op_cb_41(self):
+        pass
+
+    def _op_cb_42(self):
+        pass
+
+    def _op_cb_43(self):
+        pass
+
+    def _op_cb_44(self):
+        pass
+
+    def _op_cb_45(self):
+        pass
+
+    def _op_cb_46(self):
+        pass
+
+    def _op_cb_47(self):
+        pass
+
+    def _op_cb_48(self):
+        pass
+
+    def _op_cb_49(self):
+        pass
+
+    def _op_cb_4a(self):
+        pass
+
+    def _op_cb_4b(self):
+        pass
+
+    def _op_cb_4c(self):
+        pass
+
+    def _op_cb_4d(self):
+        pass
+
+    def _op_cb_4e(self):
+        pass
+
+    def _op_cb_4f(self):
+        pass
+
+    def _op_cb_50(self):
+        pass
+
+    def _op_cb_51(self):
+        pass
+
+    def _op_cb_52(self):
+        pass
+
+    def _op_cb_53(self):
+        pass
+
+    def _op_cb_54(self):
+        pass
+
+    def _op_cb_55(self):
+        pass
+
+    def _op_cb_56(self):
+        pass
+
+    def _op_cb_57(self):
+        pass
+
+    def _op_cb_58(self):
+        pass
+
+    def _op_cb_59(self):
+        pass
+
+    def _op_cb_5a(self):
+        pass
+
+    def _op_cb_5b(self):
+        pass
+
+    def _op_cb_5c(self):
+        pass
+
+    def _op_cb_5d(self):
+        pass
+
+    def _op_cb_5e(self):
+        pass
+
+    def _op_cb_5f(self):
+        pass
+
+    def _op_cb_60(self):
+        pass
+
+    def _op_cb_61(self):
+        pass
+
+    def _op_cb_62(self):
+        pass
+
+    def _op_cb_63(self):
+        pass
+
+    def _op_cb_64(self):
+        pass
+
+    def _op_cb_65(self):
+        pass
+
+    def _op_cb_66(self):
+        pass
+
+    def _op_cb_67(self):
+        pass
+
+    def _op_cb_68(self):
+        pass
+
+    def _op_cb_69(self):
+        pass
+
+    def _op_cb_6a(self):
+        pass
+
+    def _op_cb_6b(self):
+        pass
+
+    def _op_cb_6c(self):
+        pass
+
+    def _op_cb_6d(self):
+        pass
+
+    def _op_cb_6e(self):
+        pass
+
+    def _op_cb_6f(self):
+        pass
+
+    def _op_cb_70(self):
+        pass
+
+    def _op_cb_71(self):
+        pass
+
+    def _op_cb_72(self):
+        pass
+
+    def _op_cb_73(self):
+        pass
+
+    def _op_cb_74(self):
+        pass
+
+    def _op_cb_75(self):
+        pass
+
+    def _op_cb_76(self):
+        pass
+
+    def _op_cb_77(self):
+        pass
+
+    def _op_cb_78(self):
+        pass
+
+    def _op_cb_79(self):
+        pass
+
+    def _op_cb_7a(self):
+        pass
+
+    def _op_cb_7b(self):
+        pass
+
+    def _op_cb_7c(self):
+        pass
+
+    def _op_cb_7d(self):
+        pass
+
+    def _op_cb_7e(self):
+        pass
+
+    def _op_cb_7f(self):
+        pass
+
+    def _op_cb_80(self):
+        pass
+
+    def _op_cb_81(self):
+        pass
+
+    def _op_cb_82(self):
+        pass
+
+    def _op_cb_83(self):
+        pass
+
+    def _op_cb_84(self):
+        pass
+
+    def _op_cb_85(self):
+        pass
+
+    def _op_cb_86(self):
+        pass
+
+    def _op_cb_87(self):
+        pass
+
+    def _op_cb_88(self):
+        pass
+
+    def _op_cb_89(self):
+        pass
+
+    def _op_cb_8a(self):
+        pass
+
+    def _op_cb_8b(self):
+        pass
+
+    def _op_cb_8c(self):
+        pass
+
+    def _op_cb_8d(self):
+        pass
+
+    def _op_cb_8e(self):
+        pass
+
+    def _op_cb_8f(self):
+        pass
+
+    def _op_cb_90(self):
+        pass
+
+    def _op_cb_91(self):
+        pass
+
+    def _op_cb_92(self):
+        pass
+
+    def _op_cb_93(self):
+        pass
+
+    def _op_cb_94(self):
+        pass
+
+    def _op_cb_95(self):
+        pass
+
+    def _op_cb_96(self):
+        pass
+
+    def _op_cb_97(self):
+        pass
+
+    def _op_cb_98(self):
+        pass
+
+    def _op_cb_99(self):
+        pass
+
+    def _op_cb_9a(self):
+        pass
+
+    def _op_cb_9b(self):
+        pass
+
+    def _op_cb_9c(self):
+        pass
+
+    def _op_cb_9d(self):
+        pass
+
+    def _op_cb_9e(self):
+        pass
+
+    def _op_cb_9f(self):
+        pass
+
+    def _op_cb_a0(self):
+        pass
+
+    def _op_cb_a1(self):
+        pass
+
+    def _op_cb_a2(self):
+        pass
+
+    def _op_cb_a3(self):
+        pass
+
+    def _op_cb_a4(self):
+        pass
+
+    def _op_cb_a5(self):
+        pass
+
+    def _op_cb_a6(self):
+        pass
+
+    def _op_cb_a7(self):
+        pass
+
+    def _op_cb_a8(self):
+        pass
+
+    def _op_cb_a9(self):
+        pass
+
+    def _op_cb_aa(self):
+        pass
+
+    def _op_cb_ab(self):
+        pass
+
+    def _op_cb_ac(self):
+        pass
+
+    def _op_cb_ad(self):
+        pass
+
+    def _op_cb_ae(self):
+        pass
+
+    def _op_cb_af(self):
+        pass
+
+    def _op_cb_b0(self):
+        pass
+
+    def _op_cb_b1(self):
+        pass
+
+    def _op_cb_b2(self):
+        pass
+
+    def _op_cb_b3(self):
+        pass
+
+    def _op_cb_b4(self):
+        pass
+
+    def _op_cb_b5(self):
+        pass
+
+    def _op_cb_b6(self):
+        pass
+
+    def _op_cb_b7(self):
+        pass
+
+    def _op_cb_b8(self):
+        pass
+
+    def _op_cb_b9(self):
+        pass
+
+    def _op_cb_ba(self):
+        pass
+
+    def _op_cb_bb(self):
+        pass
+
+    def _op_cb_bc(self):
+        pass
+
+    def _op_cb_bd(self):
+        pass
+
+    def _op_cb_be(self):
+        pass
+
+    def _op_cb_bf(self):
+        pass
+
+    def _op_cb_c0(self):
+        pass
+
+    def _op_cb_c1(self):
+        pass
+
+    def _op_cb_c2(self):
+        pass
+
+    def _op_cb_c3(self):
+        pass
+
+    def _op_cb_c4(self):
+        pass
+
+    def _op_cb_c5(self):
+        pass
+
+    def _op_cb_c6(self):
+        pass
+
+    def _op_cb_c7(self):
+        pass
+
+    def _op_cb_c8(self):
+        pass
+
+    def _op_cb_c9(self):
+        pass
+
+    def _op_cb_ca(self):
+        pass
+
+    def _op_cb_cb(self):
+        pass
+
+    def _op_cb_cc(self):
+        pass
+
+    def _op_cb_cd(self):
+        pass
+
+    def _op_cb_ce(self):
+        pass
+
+    def _op_cb_cf(self):
+        pass
+
+    def _op_cb_d0(self):
+        pass
+
+    def _op_cb_d1(self):
+        pass
+
+    def _op_cb_d2(self):
+        pass
+
+    def _op_cb_d3(self):
+        pass
+
+    def _op_cb_d4(self):
+        pass
+
+    def _op_cb_d5(self):
+        pass
+
+    def _op_cb_d6(self):
+        pass
+
+    def _op_cb_d7(self):
+        pass
+
+    def _op_cb_d8(self):
+        pass
+
+    def _op_cb_d9(self):
+        pass
+
+    def _op_cb_da(self):
+        pass
+
+    def _op_cb_db(self):
+        pass
+
+    def _op_cb_dc(self):
+        pass
+
+    def _op_cb_dd(self):
+        pass
+
+    def _op_cb_de(self):
+        pass
+
+    def _op_cb_df(self):
+        pass
+
+    def _op_cb_e0(self):
+        pass
+
+    def _op_cb_e1(self):
+        pass
+
+    def _op_cb_e2(self):
+        pass
+
+    def _op_cb_e3(self):
+        pass
+
+    def _op_cb_e4(self):
+        pass
+
+    def _op_cb_e5(self):
+        pass
+
+    def _op_cb_e6(self):
+        pass
+
+    def _op_cb_e7(self):
+        pass
+
+    def _op_cb_e8(self):
+        pass
+
+    def _op_cb_e9(self):
+        pass
+
+    def _op_cb_ea(self):
+        pass
+
+    def _op_cb_eb(self):
+        pass
+
+    def _op_cb_ec(self):
+        pass
+
+    def _op_cb_ed(self):
+        pass
+
+    def _op_cb_ee(self):
+        pass
+
+    def _op_cb_ef(self):
+        pass
+
+    def _op_cb_f0(self):
+        pass
+
+    def _op_cb_f1(self):
+        pass
+
+    def _op_cb_f2(self):
+        pass
+
+    def _op_cb_f3(self):
+        pass
+
+    def _op_cb_f4(self):
+        pass
+
+    def _op_cb_f5(self):
+        pass
+
+    def _op_cb_f6(self):
+        pass
+
+    def _op_cb_f7(self):
+        pass
+
+    def _op_cb_f8(self):
+        pass
+
+    def _op_cb_f9(self):
+        pass
+
+    def _op_cb_fa(self):
+        pass
+
+    def _op_cb_fb(self):
+        pass
+
+    def _op_cb_fc(self):
+        pass
+
+    def _op_cb_fd(self):
+        pass
+
+    def _op_cb_fe(self):
+        pass
+
+    def _op_cb_ff(self):
+        pass
