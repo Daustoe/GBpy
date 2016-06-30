@@ -500,8 +500,10 @@ class TestMiscOpcodes(unittest.TestCase):
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_daa(self):
+        self.cpu.a = 0xc9
         self.cpu._op_27()
-        self.assertTrue(False)
+        self.assertEqual(self.cpu.a, 0x29)
+        self.assertEqual(self.cpu.carry_flag, 1)
 
 if __name__ == '__main__':
     unittest.main()

@@ -294,8 +294,263 @@ class Cpu(object):
             0xfe: self._op_fe,
             0xff: self._op_ff,
         }
-        # TODO: Implement extended operations
-        self.ext_opcodes = {}
+        self.ext_opcodes = {
+            0x00: self._op_cb_00,
+            0x01: self._op_cb_01,
+            0x02: self._op_cb_02,
+            0x03: self._op_cb_03,
+            0x04: self._op_cb_04,
+            0x05: self._op_cb_05,
+            0x06: self._op_cb_06,
+            0x07: self._op_cb_07,
+            0x08: self._op_cb_08,
+            0x09: self._op_cb_09,
+            0x0a: self._op_cb_0a,
+            0x0b: self._op_cb_0b,
+            0x0c: self._op_cb_0c,
+            0x0d: self._op_cb_0d,
+            0x0e: self._op_cb_0e,
+            0x0f: self._op_cb_0f,
+            0x10: self._op_cb_10,
+            0x11: self._op_cb_11,
+            0x12: self._op_cb_12,
+            0x13: self._op_cb_13,
+            0x14: self._op_cb_14,
+            0x15: self._op_cb_15,
+            0x16: self._op_cb_16,
+            0x17: self._op_cb_17,
+            0x18: self._op_cb_18,
+            0x19: self._op_cb_19,
+            0x1a: self._op_cb_1a,
+            0x1b: self._op_cb_1b,
+            0x1c: self._op_cb_1c,
+            0x1d: self._op_cb_1d,
+            0x1e: self._op_cb_1e,
+            0x1f: self._op_cb_1f,
+            0x20: self._op_cb_20,
+            0x21: self._op_cb_21,
+            0x22: self._op_cb_22,
+            0x23: self._op_cb_23,
+            0x24: self._op_cb_24,
+            0x25: self._op_cb_25,
+            0x26: self._op_cb_26,
+            0x27: self._op_cb_27,
+            0x28: self._op_cb_28,
+            0x29: self._op_cb_29,
+            0x2a: self._op_cb_2a,
+            0x2b: self._op_cb_2b,
+            0x2c: self._op_cb_2c,
+            0x2d: self._op_cb_2d,
+            0x2e: self._op_cb_2e,
+            0x2f: self._op_cb_2f,
+            0x30: self._op_cb_30,
+            0x31: self._op_cb_31,
+            0x32: self._op_cb_32,
+            0x33: self._op_cb_33,
+            0x34: self._op_cb_34,
+            0x35: self._op_cb_35,
+            0x36: self._op_cb_36,
+            0x37: self._op_cb_37,
+            0x38: self._op_cb_38,
+            0x39: self._op_cb_39,
+            0x3a: self._op_cb_3a,
+            0x3b: self._op_cb_3b,
+            0x3c: self._op_cb_3c,
+            0x3d: self._op_cb_3d,
+            0x3e: self._op_cb_3e,
+            0x3f: self._op_cb_3f,
+            0x40: self._op_cb_40,
+            0x41: self._op_cb_41,
+            0x42: self._op_cb_42,
+            0x43: self._op_cb_43,
+            0x44: self._op_cb_44,
+            0x45: self._op_cb_45,
+            0x46: self._op_cb_46,
+            0x47: self._op_cb_47,
+            0x48: self._op_cb_48,
+            0x49: self._op_cb_49,
+            0x4a: self._op_cb_4a,
+            0x4b: self._op_cb_4b,
+            0x4c: self._op_cb_4c,
+            0x4d: self._op_cb_4d,
+            0x4e: self._op_cb_4e,
+            0x4f: self._op_cb_4f,
+            0x50: self._op_cb_50,
+            0x51: self._op_cb_51,
+            0x52: self._op_cb_52,
+            0x53: self._op_cb_53,
+            0x54: self._op_cb_54,
+            0x55: self._op_cb_55,
+            0x56: self._op_cb_56,
+            0x57: self._op_cb_57,
+            0x58: self._op_cb_58,
+            0x59: self._op_cb_59,
+            0x5a: self._op_cb_5a,
+            0x5b: self._op_cb_5b,
+            0x5c: self._op_cb_5c,
+            0x5d: self._op_cb_5d,
+            0x5e: self._op_cb_5e,
+            0x5f: self._op_cb_5f,
+            0x60: self._op_cb_60,
+            0x61: self._op_cb_61,
+            0x62: self._op_cb_62,
+            0x63: self._op_cb_63,
+            0x64: self._op_cb_64,
+            0x65: self._op_cb_65,
+            0x66: self._op_cb_66,
+            0x67: self._op_cb_67,
+            0x68: self._op_cb_68,
+            0x69: self._op_cb_69,
+            0x6a: self._op_cb_6a,
+            0x6b: self._op_cb_6b,
+            0x6c: self._op_cb_6c,
+            0x6d: self._op_cb_6d,
+            0x6e: self._op_cb_6e,
+            0x6f: self._op_cb_6f,
+            0x70: self._op_cb_70,
+            0x71: self._op_cb_71,
+            0x72: self._op_cb_72,
+            0x73: self._op_cb_73,
+            0x74: self._op_cb_74,
+            0x75: self._op_cb_75,
+            0x76: self._op_cb_76,
+            0x77: self._op_cb_77,
+            0x78: self._op_cb_78,
+            0x79: self._op_cb_79,
+            0x7a: self._op_cb_7a,
+            0x7b: self._op_cb_7b,
+            0x7c: self._op_cb_7c,
+            0x7d: self._op_cb_7d,
+            0x7e: self._op_cb_7e,
+            0x7f: self._op_cb_7f,
+            0x80: self._op_cb_80,
+            0x81: self._op_cb_81,
+            0x82: self._op_cb_82,
+            0x83: self._op_cb_83,
+            0x84: self._op_cb_84,
+            0x85: self._op_cb_85,
+            0x86: self._op_cb_86,
+            0x87: self._op_cb_87,
+            0x88: self._op_cb_88,
+            0x89: self._op_cb_89,
+            0x8a: self._op_cb_8a,
+            0x8b: self._op_cb_8b,
+            0x8c: self._op_cb_8c,
+            0x8d: self._op_cb_8d,
+            0x8e: self._op_cb_8e,
+            0x8f: self._op_cb_8f,
+            0x90: self._op_cb_90,
+            0x91: self._op_cb_91,
+            0x92: self._op_cb_92,
+            0x93: self._op_cb_93,
+            0x94: self._op_cb_94,
+            0x95: self._op_cb_95,
+            0x96: self._op_cb_96,
+            0x97: self._op_cb_97,
+            0x98: self._op_cb_98,
+            0x99: self._op_cb_99,
+            0x9a: self._op_cb_9a,
+            0x9b: self._op_cb_9b,
+            0x9c: self._op_cb_9c,
+            0x9d: self._op_cb_9d,
+            0x9e: self._op_cb_9e,
+            0x9f: self._op_cb_9f,
+            0xa0: self._op_cb_a0,
+            0xa1: self._op_cb_a1,
+            0xa2: self._op_cb_a2,
+            0xa3: self._op_cb_a3,
+            0xa4: self._op_cb_a4,
+            0xa5: self._op_cb_a5,
+            0xa6: self._op_cb_a6,
+            0xa7: self._op_cb_a7,
+            0xa8: self._op_cb_a8,
+            0xa9: self._op_cb_a9,
+            0xaa: self._op_cb_aa,
+            0xab: self._op_cb_ab,
+            0xac: self._op_cb_ac,
+            0xad: self._op_cb_ad,
+            0xae: self._op_cb_ae,
+            0xaf: self._op_cb_af,
+            0xb0: self._op_cb_b0,
+            0xb1: self._op_cb_b1,
+            0xb2: self._op_cb_b2,
+            0xb3: self._op_cb_b3,
+            0xb4: self._op_cb_b4,
+            0xb5: self._op_cb_b5,
+            0xb6: self._op_cb_b6,
+            0xb7: self._op_cb_b7,
+            0xb8: self._op_cb_b8,
+            0xb9: self._op_cb_b9,
+            0xba: self._op_cb_ba,
+            0xbb: self._op_cb_bb,
+            0xbc: self._op_cb_bc,
+            0xbd: self._op_cb_bd,
+            0xbe: self._op_cb_be,
+            0xbf: self._op_cb_bf,
+            0xc0: self._op_cb_c0,
+            0xc1: self._op_cb_c1,
+            0xc2: self._op_cb_c2,
+            0xc3: self._op_cb_c3,
+            0xc4: self._op_cb_c4,
+            0xc5: self._op_cb_c5,
+            0xc6: self._op_cb_c6,
+            0xc7: self._op_cb_c7,
+            0xc8: self._op_cb_c8,
+            0xc9: self._op_cb_c9,
+            0xca: self._op_cb_ca,
+            0xcb: self._op_cb_cb,
+            0xcc: self._op_cb_cc,
+            0xcd: self._op_cb_cd,
+            0xce: self._op_cb_ce,
+            0xcf: self._op_cb_cf,
+            0xd0: self._op_cb_d0,
+            0xd1: self._op_cb_d1,
+            0xd2: self._op_cb_d2,
+            0xd3: self._op_cb_d3,
+            0xd4: self._op_cb_d4,
+            0xd5: self._op_cb_d5,
+            0xd6: self._op_cb_d6,
+            0xd7: self._op_cb_d7,
+            0xd8: self._op_cb_d8,
+            0xd9: self._op_cb_d9,
+            0xda: self._op_cb_da,
+            0xdb: self._op_cb_db,
+            0xdc: self._op_cb_dc,
+            0xdd: self._op_cb_dd,
+            0xde: self._op_cb_de,
+            0xdf: self._op_cb_df,
+            0xe0: self._op_cb_e0,
+            0xe1: self._op_cb_e1,
+            0xe2: self._op_cb_e2,
+            0xe3: self._op_cb_e3,
+            0xe4: self._op_cb_e4,
+            0xe5: self._op_cb_e5,
+            0xe6: self._op_cb_e6,
+            0xe7: self._op_cb_e7,
+            0xe8: self._op_cb_e8,
+            0xe9: self._op_cb_e9,
+            0xea: self._op_cb_ea,
+            0xeb: self._op_cb_eb,
+            0xec: self._op_cb_ec,
+            0xed: self._op_cb_ed,
+            0xee: self._op_cb_ee,
+            0xf0: self._op_cb_f0,
+            0xf1: self._op_cb_f1,
+            0xf2: self._op_cb_f2,
+            0xf3: self._op_cb_f3,
+            0xf4: self._op_cb_f4,
+            0xf5: self._op_cb_f5,
+            0xf6: self._op_cb_f6,
+            0xf7: self._op_cb_f7,
+            0xf8: self._op_cb_f8,
+            0xf9: self._op_cb_f9,
+            0xfa: self._op_cb_fa,
+            0xfb: self._op_cb_fb,
+            0xfc: self._op_cb_fc,
+            0xfd: self._op_cb_fd,
+            0xfe: self._op_cb_fe,
+            0xff: self._op_cb_ff,
+        }
 
     def cycle(self):
         """
@@ -853,7 +1108,22 @@ class Cpu(object):
         C - set if register carries over 0xff
         :return:
         """
-        pass
+        if not self.sub_flag:
+            if self.hc_flag or (self.a & 0xf) > 0x9:
+                self.a += 0x06
+            if self.carry_flag or self.a > 0x9f:
+                self.a += 0x60
+        else:
+            if self.hc_flag:
+                self.a = (self.a - 0x06) & 0xff
+            if self.carry_flag:
+                self.a -= 0x60
+        if self.a == 0:
+            self.zero_flag = 1
+        self.hc_flag = 0
+        if (self.a & 0x100) == 0x100:
+            self.carry_flag = 1
+        self.a &= 0xff
 
     def _op_28(self):
         """
@@ -1676,12 +1946,27 @@ class Cpu(object):
         self.mmu.write_byte(self.sp + 1, self.b)
 
     def _op_c6(self):
-        # ADD A, d8
+        """
+        ADD A, d8
+        Add next value from pc in memory to register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset to zero
+        H - Set if carry from bit 3.
+        C - Set if carry from bit 7.
+        :return:
+        """
         self._add(self.mmu.read_byte(self.pc))
         self.pc += 1
 
     def _op_c7(self):
-        # RST 00H
+        """
+        RST 0x00
+        Push present address onto stack. (PC)
+        Jump to address 0x0000
+        :return:
+        """
         self._rst(0x0)
 
     def _op_c8(self):
@@ -1714,9 +1999,13 @@ class Cpu(object):
             self._op_c3()
 
     def _op_cb(self):
-        # map to CB table
-        # TODO: implement CB extended table
-        pass
+        """
+        Extended opcode table function.
+        :return:
+        """
+        ext_op = self.ext_opcodes[self.mmu.read_byte(self.pc)]
+        self.pc += 1
+        ext_op()
 
     def _op_cc(self):
         """
@@ -1741,13 +2030,27 @@ class Cpu(object):
         self.pc = addr
 
     def _op_ce(self):
-        # ADC A, d8
-        # TODO: read from rom at location self.pc for value? Or self.pc as value?
-        self._add(self.pc + self.carry_flag)
+        """
+        ADC A, d8
+        Add with carry next value in memory at pc to register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset to zero
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
+        self._add(self.mmu.read_byte(self.pc) + self.carry_flag)
         self.pc += 1
 
     def _op_cf(self):
-        # RST 08H
+        """
+        RST 0x8
+        Push present address onto stack. (PC)
+        Jump to address 0x0008
+        :return:
+        """
         self._rst(0x8)
 
     def _op_d0(self):
@@ -1806,12 +2109,27 @@ class Cpu(object):
         self.mmu.write_byte(self.sp + 1, self.d)
 
     def _op_d6(self):
-        # SUB d8
+        """
+        SUB A, d8
+        Subtract next value in memory at pc from register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.mmu.read_byte(self.pc))
         self.pc += 1
 
     def _op_d7(self):
-        # RST 10H
+        """
+        RST 0x10
+        Push present address onto stack. (PC)
+        Jump to address 0x0010
+        :return:
+        """
         self._rst(0x10)
 
     def _op_d8(self):
@@ -1865,12 +2183,27 @@ class Cpu(object):
         pass
 
     def _op_de(self):
-        # SBC A, d8
+        """
+        SBC A, d8
+        Subtract with carry next value in memory at pc from register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.mmu.read_byte(self.pc) + self.carry_flag)
         self.pc += 1
 
     def _op_df(self):
-        # RST 18H
+        """
+        RST 0x18
+        Push present address onto stack. (PC)
+        Jump to address 0x0018
+        :return:
+        """
         self._rst(0x18)
 
     def _op_e0(self):
@@ -2018,7 +2351,17 @@ class Cpu(object):
         pass
 
     def _op_ee(self):
-        # XOR d8
+        """
+        XOR d8
+        Logical exclusive OR next value in memory at pc with register A, result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset to 0
+        H - Reset to 0
+        C - Reset to 0
+        :return:
+        """
         self._xor(self.mmu.read_byte(self.pc))
         self.pc += 1
 
@@ -2080,7 +2423,17 @@ class Cpu(object):
         self.mmu.write_byte(self.sp + 1, self.a)
 
     def _op_f6(self):
-        # OR d8
+        """
+        OR d8
+        Logical OR next value in memory at pc with register A, result stored in A.
+
+        Flags affected:
+        Z - Set if result is 0
+        N - Reset to 0
+        H - Reset to 0
+        C - Reset to 0
+        :return:
+        """
         self._or(self.mmu.read_byte(self.pc))
         self.pc += 1
 
@@ -2159,7 +2512,18 @@ class Cpu(object):
         pass
 
     def _op_fe(self):
-        # CP d8
+        """
+        CP d8
+        Compare A with next value in memory at pc. This is basically an A - n subtraction instruction but the results
+        are thrown away.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._cp(self.mmu.read_byte(self.pc))
         self.pc += 1
 
