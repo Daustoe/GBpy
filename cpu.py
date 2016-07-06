@@ -926,8 +926,8 @@ class Cpu(object):
         0x11
         :return:
         """
-        self.d = self.mmu.read_byte(self.pc)
-        self.e = self.mmu.read_byte(self.pc + 1)
+        self.e = self.mmu.read_byte(self.pc)
+        self.d = self.mmu.read_byte(self.pc + 1)
         self.pc += 2
         self.m = 3
 
@@ -963,7 +963,7 @@ class Cpu(object):
         Rotate A left through Carry flag.
         :return:
         """
-        high_bit = (self.a & 0x80) // 0x80
+        high_bit = (self.a & 0x80) << 7
         self.a = ((self.a << 1) & 0xff) | self.carry_flag
         self.carry_flag = high_bit
         self.zero_flag = 1 if self.a == 0 else 0
@@ -976,6 +976,7 @@ class Cpu(object):
         Add n to current address (pc) and jump to it.
         :return:
         """
+        delta = self.mmu.read_byte(self.pc)
         self.pc += self.mmu.read_byte(self.pc)
 
     def _op_19(self):
@@ -1055,20 +1056,22 @@ class Cpu(object):
         If zero flag == 0 then add n to current address and jump to it.
         :return:
         """
-        if self.zero_flag == 0:
+        if self.zero_flag != 0:
             self._op_18()
+        else:
+            self.pc += 1
 
     def _op_21(self):
         # LD HL, d16
-        self.h = self.mmu.read_byte(self.pc)
-        self.l = self.mmu.read_byte(self.pc + 1)
+        self.l = self.mmu.read_byte(self.pc)
+        self.h = self.mmu.read_byte(self.pc + 1)
         self.pc += 2
         self.m = 3
 
     def _op_22(self):
         # LD (HL+), A
         # TODO: is this increment HL or increment memory at addr HL?
-        self.a = self.mmu.read_byte((self.h << 8) + self.l)
+        self.mmu.write_byte((self.h << 8) + self.l, self.a)
         self.l = (self.l + 1) & 0xff
         if self.l == 0:
             self.h = (self.h + 1) & 0xff
@@ -1133,6 +1136,8 @@ class Cpu(object):
         """
         if self.zero_flag:
             self._op_18()
+        else:
+            self.pc += 1
 
     def _op_29(self):
         """
@@ -1188,6 +1193,8 @@ class Cpu(object):
         """
         if self.carry_flag == 0:
             self._op_18()
+        else:
+            self.pc += 1
 
     def _op_31(self):
         # LD SP, d16
@@ -1197,7 +1204,7 @@ class Cpu(object):
 
     def _op_32(self):
         # LD (HL-), A
-        self.a = self.mmu.read_byte((self.h << 8) + self.l)
+        self.mmu.write_byte((self.h << 8) + self.l, self.a)
         self.l = (self.l - 1) & 0xff
         if self.l == 255:
             self.h = (self.h - 1) & 0xff
@@ -1265,6 +1272,8 @@ class Cpu(object):
         """
         if self.carry_flag:
             self._op_18()
+        else:
+            self.pc += 1
 
     def _op_39(self):
         """
@@ -2022,12 +2031,13 @@ class Cpu(object):
         Push address of next instruction onto stack and then jump to address nn.
         :return:
         """
-        addr = self.pc
         self.sp = (self.sp - 2) & 0xffff
+        call_addr = self.mmu.read_byte(self.pc)
+        call_addr += self.mmu.read_byte(self.pc + 1) << 8
+        self.pc += 2
         self.mmu.write_byte(self.sp, self.pc & 0xff)
         self.mmu.write_byte(self.sp + 1, self.pc >> 8)
-        # TODO: this may be an incorrect implementation
-        self.pc = addr
+        self.pc = call_addr
 
     def _op_ce(self):
         """
@@ -2524,6 +2534,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
+        print(hex(self.pc), hex(self.mmu.read_byte(self.pc)))
         self._cp(self.mmu.read_byte(self.pc))
         self.pc += 1
 
@@ -2588,7 +2599,23 @@ class Cpu(object):
         pass
 
     def _op_cb_11(self):
-        pass
+        """
+        RL C
+        Rotate C left through Carry flag.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset to 0
+        H - Reset to 0
+        C - Contains old bit 7 data
+        :return:
+        """
+        self.sub_flag = 0
+        self.hc_flag = 0
+        self.carry_flag = (self.c & 0x80) >> 7
+        self.c = (self.c << 1) & 0xff
+        if self.c == 0:
+            self.zero_flag = 1
 
     def _op_cb_12(self):
         pass
@@ -2909,7 +2936,23 @@ class Cpu(object):
         pass
 
     def _op_cb_7c(self):
-        pass
+        """
+        BIT 7, H
+        Test bit 7 in register H.
+
+        Flags affected:
+        Z - Set if bit 7 of register H is 0
+        N - Reset to 0
+        H - Set to 1
+        C - Not affected
+        :return:
+        """
+        self.sub_flag = 0
+        self.hc_flag = 1
+        if self.h & 0x80 == 0x80:
+            self.zero_flag = 0
+        else:
+            self.zero_flag = 1
 
     def _op_cb_7d(self):
         pass
