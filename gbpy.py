@@ -15,6 +15,8 @@ class Gbpy(pyglet.window.Window):
         self.mmu = mmu.MMU()
         self.cpu = cpu.Cpu(self.mmu)
         self.gpu = gpu.GPU()
+        self.clear()
+        self.set_vsync(False)
 
     def load_rom(self, rom_path):
         """
@@ -31,7 +33,7 @@ class Gbpy(pyglet.window.Window):
             time delta, used because this is a scheduled function
         """
         if not self.has_exit:
-            self.dispatch_eveents()
+            self.dispatch_events()
             self.cpu.cycle()
 
     def on_key_press(self, symbol, modifiers):

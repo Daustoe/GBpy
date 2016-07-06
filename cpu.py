@@ -557,6 +557,7 @@ class Cpu(object):
         """
         self.previous_pc = self.pc
         self.opcode = self.mmu.read_byte(self.pc)
+        print(hex(self.pc), hex(self.opcode))
         self.pc += 1
         self.opcodes[self.opcode]()
         self.pc &= 0xffff

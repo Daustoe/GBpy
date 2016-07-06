@@ -31,7 +31,7 @@ class MMU(object):
                      0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E, 0x3c, 0x42, 0xB9, 0xA5, 0xB9, 0xA5, 0x42, 0x4C,
                      0x21, 0x04, 0x01, 0x11, 0xA8, 0x00, 0x1A, 0x13, 0xBE, 0x20, 0xFE, 0x23, 0x7D, 0xFE, 0x34, 0x20,
                      0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50]
-        self.rom = []
+        self.rom = self.bios
         self.wram = []
         self.eram = []
         self.zram = []
@@ -44,7 +44,7 @@ class MMU(object):
         Resets memory to initial values
         :return:
         """
-        self.rom = [0] * 0x4000
+        self.ram = self.bios
         self.wram = [0] * 0x2000
         self.eram = [0] * 0x8000
         self.zram = [0] * 0x80
@@ -58,8 +58,9 @@ class MMU(object):
         """
         self.reset()
         rom = open(rom_path, "rb").read()
-        for index in range(0, len(self.rom)):
-            self.rom[index] = rom[index]
+        for c in rom:
+            self.rom.append(c)
+        print(hex(len(self.rom)))
 
     def write_byte(self, addr, value):
         """
