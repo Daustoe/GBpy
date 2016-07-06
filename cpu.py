@@ -557,7 +557,7 @@ class Cpu(object):
         """
         self.previous_pc = self.pc
         self.opcode = self.mmu.read_byte(self.pc)
-        print(hex(self.pc), hex(self.opcode))
+        print(hex(self.pc), hex(self.opcode), hex(self.h), hex(self.l))
         self.pc += 1
         self.opcodes[self.opcode]()
         self.pc &= 0xffff
@@ -977,7 +977,11 @@ class Cpu(object):
         :return:
         """
         delta = self.mmu.read_byte(self.pc)
-        self.pc += self.mmu.read_byte(self.pc)
+        self.pc += 1
+        if delta > 0x7f:
+            delta -= 0x100
+        self.pc += delta
+
 
     def _op_19(self):
         """
@@ -1056,7 +1060,7 @@ class Cpu(object):
         If zero flag == 0 then add n to current address and jump to it.
         :return:
         """
-        if self.zero_flag != 0:
+        if self.zero_flag == 0:
             self._op_18()
         else:
             self.pc += 1
@@ -2222,6 +2226,7 @@ class Cpu(object):
         Load A into memory address 0xff00 + n
         :return:
         """
+        print(self.a)
         offset = self.mmu.read_byte(self.pc)
         self.pc += 1
         self.mmu.write_byte(0xff00 + offset, self.a)
