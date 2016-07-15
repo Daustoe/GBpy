@@ -575,7 +575,9 @@ class Cpu(object):
         :param pc:
         :return:
         """
-        # TODO: Need to push pc to stack before we set pc to new value.
+        self.sp = (self.sp - 2) & 0xffff
+        call_addr = self.mmu.read_byte(self.pc)
+        call_addr += self.mmu.read_byte(self.pc + 1) << 8
         self.pc = pc
         self.m = 3
 
@@ -656,7 +658,6 @@ class Cpu(object):
         :param value:
         :return:
         """
-        # Add register A to given register and store in A. Check for flags.
         self.hc_flag = 1 if ((self.a & 0xf) + (value & 0xf)) > 0xf else 0
         self.a += value
         self.carry_flag = 1 if self.a > 0xff else 0
@@ -708,20 +709,30 @@ class Cpu(object):
         self.m = 1
 
     def _or(self, value):
-        # Logical OR command, takes a register as an argument and or's it with register A
+        """
+        Logical OR abstracted method used by OR opcodes. All OR operations compare the given value with the
+        Accumulator register (register A) whether that value be from memory or from another register.
+        :param value:
+        :return:
+        """
         self.a |= value
         self.a &= 0xff
-        self.zero_flag = 1 if self.a == 0 else 0  # z_flag will be 1 if self.a == 0, else z_flag will be 0
+        self.zero_flag = 1 if self.a == 0 else 0
         self.carry_flag = 0
         self.hc_flag = 0
         self.sub_flag = 0
         self.m = 1
 
     def _xor(self, value):
-        # Logical XOR command, takes a register as an argument and xor's it with register A
+        """
+        Logical XOR abstracted method used for XOR opcodes. All XOR operations compare a value to the
+        Accumulator register (register A) whether that value be from memory or from another register.
+        :param value:
+        :return:
+        """
         self.a ^= value
         self.a &= 0xff
-        self.zero_flag = 1 if self.a == 0 else 0  # z_flag will be 1 if self.a == 0, else z_flag will be 0
+        self.zero_flag = 1 if self.a == 0 else 0
         self.carry_flag = 0
         self.hc_flag = 0
         self.sub_flag = 0
@@ -758,7 +769,13 @@ class Cpu(object):
     def _op_03(self):
         """
         INC BC
-        0x03
+        Increment register pair BC.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
         :return:
         """
         self.c = (self.c + 1) & 0xff
@@ -769,7 +786,13 @@ class Cpu(object):
     def _op_04(self):
         """
         INC B
-        0x04
+        Increment register B.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
         :return:
         """
         self._inc('b')
@@ -868,7 +891,14 @@ class Cpu(object):
     def _op_0c(self):
         """
         INC C
-        0x0c
+        Increment register C.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
+
         :return:
         """
         self._inc('c')
@@ -932,22 +962,57 @@ class Cpu(object):
         self.m = 3
 
     def _op_12(self):
-        # LD (DE), A
+        """
+        LD (DE), A
+        Load value in memory at address in register pair DE into register A.
+        :return:
+        """
         self.mmu.write_byte((self.d << 8) + self.e, self.a)
         self.m = 2
 
     def _op_13(self):
-        # INC DE
+        """
+        INC DE
+        Increment register pair DE.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
+        :return:
+        """
         self.e = (self.e + 1) & 0xff
         if self.e == 0:
             self.d = (self.d + 1) & 0xff
         self.m = 1
 
     def _op_14(self):
-        # INC D
+        """
+        INC D
+        Increment register D.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
+        :return:
+        """
         self._inc('d')
 
     def _op_15(self):
+        """
+        DEC D
+        Decrement register D.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
+        :return:
+        """
         # DEC D
         self._dec('d')
 
@@ -1022,7 +1087,17 @@ class Cpu(object):
             self.d = (self.d - 1) & 0xff
 
     def _op_1c(self):
-        # INC E
+        """
+        INC E
+        Increment register.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
+        :return:
+        """
         self._inc('e')
 
     def _op_1d(self):
@@ -1088,7 +1163,17 @@ class Cpu(object):
         self.m = 1
 
     def _op_24(self):
-        # INC H
+        """
+        INC H
+        Increment register H.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
+        :return:
+        """
         self._inc('h')
 
     def _op_25(self):
@@ -1169,7 +1254,17 @@ class Cpu(object):
             self.h = (self.h - 1) & 255
 
     def _op_2c(self):
-        # INC L
+        """
+        INC L
+        Increment register L.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
+        :return:
+        """
         self._inc('l')
 
     def _op_2d(self):
@@ -1312,7 +1407,17 @@ class Cpu(object):
         self.m = 1
 
     def _op_3c(self):
-        # INC A
+        """
+        INC A
+        Increment register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
+        :return:
+        """
         self._inc('a')
 
     def _op_3d(self):
