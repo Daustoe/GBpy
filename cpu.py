@@ -1156,7 +1156,17 @@ class Cpu(object):
             self.h = (self.h + 1) & 0xff
 
     def _op_23(self):
-        # INC HL
+        """
+        INC HL
+        Increment register pair HL.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Reset
+        H - Set if carry from bit 3.
+        C - Not affected
+        :return:
+        """
         self.l = (self.l + 1) & 0xff
         if self.l == 0:
             self.h = (self.h + 1) & 0xff
