@@ -35,9 +35,9 @@ class GPU(object):
         }
 
     def update(self, data, addr):
-        print('addr: ', addr)
-        print('data: ', data)
-        print(self.display.get_region(x, y, 1, 1).get_image_data())
+        # print('addr: ', addr)
+        # print('data: ', data)
+        # print(self.display.get_region(x, y, 1, 1).get_image_data())
         return None
 
     def __str__(self):

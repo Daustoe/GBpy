@@ -1,10 +1,12 @@
 import unittest
 from cpu import Cpu
+from mmu import MMU
 
 
 class TestArithmeticOpcodes(unittest.TestCase):
     def setUp(self):
-        self.cpu = Cpu()
+        self.cpu = Cpu(MMU())
+        self.cpu.mmu.rom = [0] * 128
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_registers_0_at_init(self):
@@ -184,7 +186,8 @@ class TestArithmeticOpcodes(unittest.TestCase):
 
 class TestLogicalArithmeticOpcodes(unittest.TestCase):
     def setUp(self):
-        self.cpu = Cpu()
+        self.cpu = Cpu(MMU())
+        self.cpu.mmu.rom = [0] * 128
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_direct_xor(self):
@@ -269,7 +272,8 @@ class TestLogicalArithmeticOpcodes(unittest.TestCase):
 
 class TestLoadOpcodes(unittest.TestCase):
     def setUp(self):
-        self.cpu = Cpu()
+        self.cpu = Cpu(MMU())
+        self.cpu.mmu.rom = [0] * 128
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_direct_load(self):
@@ -317,7 +321,8 @@ class TestLoadOpcodes(unittest.TestCase):
 
 class TestShiftAndRotateOpcodes(unittest.TestCase):
     def setUp(self):
-        self.cpu = Cpu()
+        self.cpu = Cpu(MMU())
+        self.cpu.mmu.rom = [0] * 128
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_rlca(self):
@@ -379,7 +384,8 @@ class TestShiftAndRotateOpcodes(unittest.TestCase):
 
 class TestJumpOpcodes(unittest.TestCase):
     def setUp(self):
-        self.cpu = Cpu()
+        self.cpu = Cpu(MMU())
+        self.cpu.mmu.rom = [0] * 128
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_jump_to_addr_nn(self):
@@ -439,7 +445,8 @@ class TestJumpOpcodes(unittest.TestCase):
 
 class TestCallOpcodes(unittest.TestCase):
     def setUp(self):
-        self.cpu = Cpu()
+        self.cpu = Cpu(MMU())
+        self.cpu.mmu.rom = [0] * 128
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
         self.cpu.mmu.rom[0] = 0x1
         self.cpu.mmu.rom[1] = 0xed
@@ -463,7 +470,8 @@ class TestCallOpcodes(unittest.TestCase):
 
 class TestRetOpcodes(unittest.TestCase):
     def setUp(self):
-        self.cpu = Cpu()
+        self.cpu = Cpu(MMU())
+        self.cpu.mmu.rom = [0] * 128
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_standard_return(self):
@@ -484,7 +492,8 @@ class TestRetOpcodes(unittest.TestCase):
 
 class TestStackOpcodes(unittest.TestCase):
     def setUp(self):
-        self.cpu = Cpu()
+        self.cpu = Cpu(MMU())
+        self.cpu.mmu.rom = [0] * 128
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_push(self):
@@ -496,7 +505,8 @@ class TestStackOpcodes(unittest.TestCase):
 
 class TestMiscOpcodes(unittest.TestCase):
     def setUp(self):
-        self.cpu = Cpu()
+        self.cpu = Cpu(MMU())
+        self.cpu.mmu.rom = [0] * 128
         self.cpu.mmu.load('C:/Users/cjpowell/workspace/Python/gbpy/resources/test_file.gb')
 
     def test_daa(self):

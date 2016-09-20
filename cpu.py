@@ -7,21 +7,21 @@ class Cpu(object):
     """
 
     def __init__(self, mmu):
-        self.pc = 0  # Program Counter
+        self.pc = 0x100  # Program Counter
         self.previous_pc = 0
-        self.sp = 0  # Stack Pointer
+        self.sp = 0xfffe  # Stack Pointer
         self.mmu = mmu  # Memory Management Unit
         self.opcode = 0
         self.interrupts = False
 
         # Registers
-        self.a = 0
+        self.a = 0x01
         self.b = 0
-        self.c = 0
+        self.c = 0x13
         self.d = 0
-        self.e = 0
-        self.h = 0
-        self.l = 0
+        self.e = 0xd8
+        self.h = 0x01
+        self.l = 0x4d
 
         # clock values
         self.m = 0
@@ -29,10 +29,10 @@ class Cpu(object):
         self.clock = {'m': self.m, 't': self.t}
 
         # we keep the flags separate instead of in the f register. No need to complicate this process.
-        self.zero_flag = 0     # 0x80
+        self.zero_flag = 1     # 0x80
         self.sub_flag = 0      # 0x40
-        self.hc_flag = 0       # 0x20
-        self.carry_flag = 0    # 0x10
+        self.hc_flag = 1       # 0x20
+        self.carry_flag = 1    # 0x10
 
         # Opcode map, some opcodes not supported in GB architecture
         self.opcodes = {
@@ -1329,6 +1329,7 @@ class Cpu(object):
         # self.mmu.read_byte()
         addr = (self.h << 8) + self.l
         value = (self.mmu.read_byte(addr) + 1) & 0xff
+        print(value)
         self.mmu.write_byte(addr, value)
         self.sub_flag = 0
         if value == 0:
@@ -2051,7 +2052,7 @@ class Cpu(object):
         Jump to address nn. nn is two next bytes read from memory at current program counter (pc)
         :return:
         """
-        self.pc = (self.mmu.read_byte(self.pc) << 8) + self.mmu.read_byte(self.pc + 1)
+        self.pc = (self.mmu.read_byte(self.pc + 1) << 8) + self.mmu.read_byte(self.pc)
 
     def _op_c4(self):
         """
@@ -2454,9 +2455,10 @@ class Cpu(object):
         Put value A into memory range given by next two bytes read from pc.
         :return:
         """
-        addr = self.mmu.read_byte(self.pc) << 8
+        addr = self.mmu.read_byte(self.pc)
         self.pc += 1
-        addr |= self.mmu.read_byte(self.pc)
+        addr |= (self.mmu.read_byte(self.pc) << 8)
+        self.pc += 1
         self.mmu.write_byte(addr, self.a)
 
     def _op_eb(self):
