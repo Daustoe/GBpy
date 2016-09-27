@@ -35,7 +35,7 @@ class Gbpy(pyglet.window.Window):
         if not self.has_exit:
             self.dispatch_events()
             self.cpu.cycle()
-            self.gpu.update('temp addr', 'temp data')
+            self.gpu.step()
 
     def on_key_press(self, symbol, modifiers):
         """

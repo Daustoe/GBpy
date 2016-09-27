@@ -1,4 +1,5 @@
 __author__ = 'Clayton Powell'
+import os
 
 
 class Cpu(object):
@@ -557,7 +558,20 @@ class Cpu(object):
         """
         self.previous_pc = self.pc
         self.opcode = self.mmu.read_byte(self.pc)
-        print(hex(self.pc), hex(self.opcode), hex(self.h), hex(self.l))
+
+        print('PC:\t' + hex(self.pc))
+        print('SP:\t' + hex(self.sp) + '\n')
+        print('A: \t' + hex(self.a))
+        print('B: \t' + hex(self.b))
+        print('C: \t' + hex(self.c))
+        print('D: \t' + hex(self.d))
+        print('E: \t' + hex(self.e))
+        print('H: \t' + hex(self.h))
+        print('L: \t' + hex(self.l) + '\n')
+        print('Flags:')
+        print('\tZ: ' + str(self.zero_flag) + '\tN: ' + str(self.sub_flag) + '\tH: ' + str(self.hc_flag) + '\tC: ' + str(self.carry_flag))
+        print('\n')
+
         self.pc += 1
         self.opcodes[self.opcode]()
         self.pc &= 0xffff
@@ -579,7 +593,6 @@ class Cpu(object):
         call_addr = self.mmu.read_byte(self.pc)
         call_addr += self.mmu.read_byte(self.pc + 1) << 8
         self.pc = pc
-        self.m = 3
 
     def _cp(self, value):
         """
@@ -594,6 +607,7 @@ class Cpu(object):
         :param value:
         :return:
         """
+        self.sub_flag = 1
         if self.a == value:
             self.zero_flag = 1
         else:
@@ -664,7 +678,6 @@ class Cpu(object):
         self.a &= 0xff
         self.zero_flag = 1 if self.a == 0 else 0
         self.sub_flag = 0
-        self.m = 1
 
     def _sub(self, value):
         """
@@ -685,7 +698,6 @@ class Cpu(object):
         self.a &= 0xff
         self.zero_flag = 1 if self.a == 0 else 0
         self.sub_flag = 1
-        self.m = 1
 
     def _and(self, value):
         """
@@ -706,7 +718,6 @@ class Cpu(object):
         self.hc_flag = 1
         self.sub_flag = 0
         self.carry_flag = 0
-        self.m = 1
 
     def _or(self, value):
         """
@@ -721,7 +732,6 @@ class Cpu(object):
         self.carry_flag = 0
         self.hc_flag = 0
         self.sub_flag = 0
-        self.m = 1
 
     def _xor(self, value):
         """
@@ -736,15 +746,15 @@ class Cpu(object):
         self.carry_flag = 0
         self.hc_flag = 0
         self.sub_flag = 0
-        self.m = 1
 
     def _op_00(self):
         """
         NOP
         0x00
         :return:
+        4
         """
-        self.m = 1
+        return 4
 
     def _op_01(self):
         """
@@ -755,7 +765,7 @@ class Cpu(object):
         self.c = self.mmu.read_byte(self.pc)
         self.b = self.mmu.read_byte(self.pc + 1)
         self.pc += 2
-        self.m = 3
+        return 12
 
     def _op_02(self):
         """
@@ -764,7 +774,7 @@ class Cpu(object):
         :return:
         """
         self.mmu.write_byte((self.b << 8) + self.c, self.a)
-        self.m = 2
+        return 8
 
     def _op_03(self):
         """
@@ -781,7 +791,7 @@ class Cpu(object):
         self.c = (self.c + 1) & 0xff
         if self.c == 0:
             self.b = (self.b + 1) & 0xff
-        self.m = 1
+        return 8
 
     def _op_04(self):
         """
@@ -796,6 +806,7 @@ class Cpu(object):
         :return:
         """
         self._inc('b')
+        return 4
 
     def _op_05(self):
         """
@@ -804,6 +815,7 @@ class Cpu(object):
         :return:
         """
         self._dec('b')
+        return 4
 
     def _op_06(self):
         """
@@ -813,7 +825,7 @@ class Cpu(object):
         """
         self.b = self.mmu.read_byte(self.pc)
         self.pc += 1
-        self.m = 2
+        return 8
 
     def _op_07(self):
         """
@@ -834,7 +846,7 @@ class Cpu(object):
         self.zero_flag = 1 if self.a == 0 else 0
         self.sub_flag = 0
         self.hc_flag = 0
-        self.m = 1
+        return 4
 
     def _op_08(self):
         """
@@ -843,7 +855,7 @@ class Cpu(object):
         :return:
         """
         self.mmu.write_word(self.pc, self.sp)
-        self.m = 4
+        return 20
 
     def _op_09(self):
         """
@@ -866,7 +878,7 @@ class Cpu(object):
         hl = (hl + bc) & 0xffff
         self.h = hl >> 8
         self.l = hl & 0xff
-        self.m = 3
+        return 8
 
     def _op_0a(self):
         """
@@ -875,7 +887,7 @@ class Cpu(object):
         :return:
         """
         self.a = self.mmu.read_byte((self.b << 8) | self.c)
-        self.m = 2
+        return 8
 
     def _op_0b(self):
         """
@@ -886,7 +898,7 @@ class Cpu(object):
         self.c = (self.c - 1) & 0xff
         if self.c == 0xff:
             self.b = (self.b - 1) & 0xff
-        self.m = 1
+        return 8
 
     def _op_0c(self):
         """
@@ -902,6 +914,7 @@ class Cpu(object):
         :return:
         """
         self._inc('c')
+        return 4
 
     def _op_0d(self):
         """
@@ -910,6 +923,7 @@ class Cpu(object):
         :return:
         """
         self._dec('c')
+        return 4
 
     def _op_0e(self):
         """
@@ -919,7 +933,7 @@ class Cpu(object):
         """
         self.c = self.mmu.read_byte(self.pc)
         self.pc += 1
-        self.m = 2
+        return 8
 
     def _op_0f(self):
         """
@@ -939,7 +953,7 @@ class Cpu(object):
         self.sub_flag = 0
         self.hc_flag = 0
         self.zero_flag = 1 if self.a == 0 else 0
-
+        return 4
 
     def _op_10(self):
         """
@@ -948,7 +962,7 @@ class Cpu(object):
         :return:
         """
         # TODO: Once cycles implemented, add functionality to stop cycles here.
-        pass
+        return 4
 
     def _op_11(self):
         """
@@ -959,7 +973,7 @@ class Cpu(object):
         self.e = self.mmu.read_byte(self.pc)
         self.d = self.mmu.read_byte(self.pc + 1)
         self.pc += 2
-        self.m = 3
+        return 12
 
     def _op_12(self):
         """
@@ -968,7 +982,7 @@ class Cpu(object):
         :return:
         """
         self.mmu.write_byte((self.d << 8) + self.e, self.a)
-        self.m = 2
+        return 8
 
     def _op_13(self):
         """
@@ -985,7 +999,7 @@ class Cpu(object):
         self.e = (self.e + 1) & 0xff
         if self.e == 0:
             self.d = (self.d + 1) & 0xff
-        self.m = 1
+        return 8
 
     def _op_14(self):
         """
@@ -1000,6 +1014,7 @@ class Cpu(object):
         :return:
         """
         self._inc('d')
+        return 4
 
     def _op_15(self):
         """
@@ -1015,12 +1030,13 @@ class Cpu(object):
         """
         # DEC D
         self._dec('d')
+        return 4
 
     def _op_16(self):
         # LD D, d8
         self.d = self.mmu.read_byte(self.pc)
         self.pc += 1
-        self.m = 2
+        return 8
 
     def _op_17(self):
         """
@@ -1034,6 +1050,7 @@ class Cpu(object):
         self.zero_flag = 1 if self.a == 0 else 0
         self.sub_flag = 0
         self.hc_flag = 0
+        return 4
 
     def _op_18(self):
         """
@@ -1046,7 +1063,7 @@ class Cpu(object):
         if delta > 0x7f:
             delta -= 0x100
         self.pc += delta
-
+        return 12
 
     def _op_19(self):
         """
@@ -1069,12 +1086,12 @@ class Cpu(object):
         hl = (hl + de) & 0xffff
         self.h = hl >> 8
         self.l = hl & 0xff
-        self.m = 3
+        return 8
 
     def _op_1a(self):
         # LD A, (DE)
         self.a = self.mmu.read_byte((self.d << 8) | self.e)
-        self.m = 2
+        return 8
 
     def _op_1b(self):
         """
@@ -1085,6 +1102,7 @@ class Cpu(object):
         self.e = (self.e - 1) & 0xff
         if self.e == 0xff:
             self.d = (self.d - 1) & 0xff
+        return 8
 
     def _op_1c(self):
         """
@@ -1099,16 +1117,18 @@ class Cpu(object):
         :return:
         """
         self._inc('e')
+        return 4
 
     def _op_1d(self):
         # DEC E
         self._dec('e')
+        return 4
 
     def _op_1e(self):
         # LD E, d8
         self.e = self.mmu.read_byte(self.pc)
         self.pc += 1
-        self.m = 2
+        return 8
 
     def _op_1f(self):
         """
@@ -1128,6 +1148,7 @@ class Cpu(object):
         self.zero_flag = 1 if self.a == 0 else 0
         self.sub_flag = 0
         self.hc_flag = 0
+        return 4
 
     def _op_20(self):
         """
@@ -1136,16 +1157,17 @@ class Cpu(object):
         :return:
         """
         if self.zero_flag == 0:
-            self._op_18()
+            return self._op_18()
         else:
             self.pc += 1
+            return 8
 
     def _op_21(self):
         # LD HL, d16
         self.l = self.mmu.read_byte(self.pc)
         self.h = self.mmu.read_byte(self.pc + 1)
         self.pc += 2
-        self.m = 3
+        return 12
 
     def _op_22(self):
         # LD (HL+), A
@@ -1154,6 +1176,7 @@ class Cpu(object):
         self.l = (self.l + 1) & 0xff
         if self.l == 0:
             self.h = (self.h + 1) & 0xff
+        return 8
 
     def _op_23(self):
         """
@@ -1170,7 +1193,8 @@ class Cpu(object):
         self.l = (self.l + 1) & 0xff
         if self.l == 0:
             self.h = (self.h + 1) & 0xff
-        self.m = 1
+        return 4
+        return 8
 
     def _op_24(self):
         """
@@ -1185,16 +1209,35 @@ class Cpu(object):
         :return:
         """
         self._inc('h')
+        return 4
 
     def _op_25(self):
-        # DEC H
+        """
+        DEC H
+        Decrement register H.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if carry from bit 3
+        C - Not affected
+        :return:
+        """
         self._dec('h')
+        return 4
 
     def _op_26(self):
-        # LD H, d8
+        """
+        LD H, d8
+        Load immediate byte value into register H.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.h = self.mmu.read_byte(self.pc)
         self.pc += 1
-        self.m = 2
+        return 8
 
     def _op_27(self):
         """
@@ -1226,6 +1269,7 @@ class Cpu(object):
         if (self.a & 0x100) == 0x100:
             self.carry_flag = 1
         self.a &= 0xff
+        return 4
 
     def _op_28(self):
         """
@@ -1234,9 +1278,10 @@ class Cpu(object):
         :return:
         """
         if self.zero_flag:
-            self._op_18()
+            return self._op_18()
         else:
             self.pc += 1
+            return 8
 
     def _op_29(self):
         """
@@ -1251,17 +1296,35 @@ class Cpu(object):
         :return:
         """
         data = (self.h << 8) | self.l
+        return 8
 
     def _op_2a(self):
-        # LD A, (HL+)
+        """
+        LD A, (HL+)
+        Put value at address HL into register A. Increment HL afterwards.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.mmu.read_byte((self.h << 8) + self.l)
         # TODO: INC (HL)
+        return 8
 
     def _op_2b(self):
+        """
+        DEC HL
+        Decrement register pair HL.
+
+        Flags affected:
+        None
+        :return:
+        """
         # DEC HL
         self.l = (self.l - 1) & 255
         if self.l == 255:
             self.h = (self.h - 1) & 255
+        return 8
 
     def _op_2c(self):
         """
@@ -1276,23 +1339,52 @@ class Cpu(object):
         :return:
         """
         self._inc('l')
+        return 4
 
     def _op_2d(self):
-        # DEC L
+        """
+        DEC L
+        Decrement register L.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 1
+        H - Set if carry from bit 3
+        C - Not affected
+        :return:
+        """
         self._dec('l')
+        return 4
 
     def _op_2e(self):
-        # LD L, d8
+        """
+        LD L, d8
+        Load next immediate byte value into register L.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.l = self.mmu.read_byte(self.pc)
         self.pc += 1
-        self.m = 2
+        return 8
 
     def _op_2f(self):
-        # CPL
+        """
+        CPL
+        Complement A register. (Flip all bits)
+
+        Flags affected:
+        Z - Not affected
+        N - Set to 1
+        H - Set to 1
+        C - Not affected
+        :return:
+        """
         self.a ^= 0xff
         self.sub_flag = 1
         self.hc_flag = 1
-        self.m = 1
+        return 4
 
     def _op_30(self):
         """
@@ -1301,35 +1393,65 @@ class Cpu(object):
         :return:
         """
         if self.carry_flag == 0:
-            self._op_18()
+            return self._op_18()
         else:
             self.pc += 1
+            return 8
 
     def _op_31(self):
-        # LD SP, d16
+        """
+        LD SP, d16
+        Stack Pointer value becomes next two immediate byte values.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.sp = self.mmu.read_word(self.pc)
         self.pc += 2
-        self.m = 3
+        return 12
 
     def _op_32(self):
-        # LD (HL-), A
+        """
+        LD (HL-), A
+        Store value in register A into memory address HL. Decrement HL.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.mmu.write_byte((self.h << 8) + self.l, self.a)
         self.l = (self.l - 1) & 0xff
         if self.l == 255:
             self.h = (self.h - 1) & 0xff
+        return 8
 
     def _op_33(self):
-        # INC SP
+        """
+        INC SP
+        Increment Stack Pointer.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.sp = (self.sp + 1) & 0xffff
-        self.m = 1
+        return 8
 
     def _op_34(self):
-        # INC (HL)
-        # Increment value stored at memory address (HL)
-        # self.mmu.read_byte()
+        """
+        INC (HL)
+        Increment value value stored at memory address (HL)
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry on bit 3
+        C - Not affected
+        :return:
+        """
         addr = (self.h << 8) + self.l
         value = (self.mmu.read_byte(addr) + 1) & 0xff
-        print(value)
         self.mmu.write_byte(addr, value)
         self.sub_flag = 0
         if value == 0:
@@ -1340,23 +1462,41 @@ class Cpu(object):
             self.hc_flag = 1
         else:
             self.hc_flag = 0
+        return 12
 
     def _op_35(self):
-        # DEC (HL)
-        # Decrement value stored at memory address (HL)
+        """
+        DEC (HL)
+        Decrement value stored at memory address (HL)
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 1
+        H - Set if carry on bit 3
+        C - Not affected
+        :return:
+        """
         temp = self.mmu.read_byte((self.h << 8) + self.l)
         temp = (temp - 1) & 0xff
         self.mmu.write_byte((self.h << 8) + self.l, temp)
         self.zero_flag = 1 if temp == 0 else 0
         self.sub_flag = 1
         self.hc_flag = 1 if (temp & 0xf) > 0xf else 0
+        return 12
 
     def _op_36(self):
-        # LD (HL), d8
-        # Load byte value into memory address (HL)
+        """
+        LD (HL), d8
+        Load next immediate byte value into memory address (HL)
+
+        Flags affected:
+        None
+        :return:
+        """
         self.mmu.write_byte((self.h << 8) + self.l, self.pc)
         self.pc += 1
         # TODO: this may need to be updated. Will have to check whether it should be pc, or location in rom at pc
+        return 12
 
     def _op_37(self):
         """
@@ -1373,17 +1513,22 @@ class Cpu(object):
         self.carry_flag = 1
         self.hc_flag = 0
         self.sub_flag = 0
+        return 4
 
     def _op_38(self):
         """
         JR NZ, nn
         If carr flag == 1 then add n to current address and jump to it.
+
+        Flags affected:
+        None
         :return:
         """
         if self.carry_flag:
-            self._op_18()
+            return self._op_18()
         else:
             self.pc += 1
+            return 8
 
     def _op_39(self):
         """
@@ -1405,17 +1550,33 @@ class Cpu(object):
         hl = (hl + self.sp) & 0xffff
         self.h = hl >> 8
         self.l = hl & 0xff
-        self.m = 3
+        return 8
 
     def _op_3a(self):
-        # LD A, (HL-)
+        """
+        LD A, (HL-)
+        Load value in memory address (HL) into register A. Decrement HL
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.mmu.read_byte((self.h << 8) + self.l)
         # TODO: DEC (HL)
+        return 8
 
     def _op_3b(self):
+        """
+        DEC SP
+        Decrement Stack pointer.
+
+        Flags affected:
+        None
+        :return:
+        """
         # DEC SP
         self.sp = (self.sp - 1) & 0xffff
-        self.m = 1
+        return 8
 
     def _op_3c(self):
         """
@@ -1430,16 +1591,35 @@ class Cpu(object):
         :return:
         """
         self._inc('a')
+        return 4
 
     def _op_3d(self):
-        # DEC A
+        """
+        DEC A
+        Decrement register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 1
+        H - Set if carry on bit 3
+        C - Not affected
+        :return:
+        """
         self._dec('a')
+        return 4
 
     def _op_3e(self):
-        # LD A, d8
+        """
+        LD A, d8
+        Load next immediate byte value into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.mmu.read_byte(self.pc)
         self.pc += 1
-        self.m = 2
+        return 8
 
     def _op_3f(self):
         """
@@ -1457,305 +1637,769 @@ class Cpu(object):
         self.sub_flag = 0
         self.hc_flag = 0
         self.carry_flag = 1 if self.carry_flag == 0 else 0
+        return 4
 
     def _op_40(self):
-        # LD B, B
-        self.m = 1
+        """
+        LD B, B
+        Load value in register B into register B. Essentially treated as a NOP.
+
+        Flags affected:
+        None
+        :return:
+        """
+        return 4
 
     def _op_41(self):
-        # LD B, C
+        """
+        LD B, C
+        Load value in register C into register B.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.b = self.c
-        self.m = 1
+        return 4
 
     def _op_42(self):
-        # LD B, D
+        """
+        LD B, D
+        Load value in register D into register B.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.b = self.d
-        self.m = 1
+        return 4
 
     def _op_43(self):
-        # LD B, E
+        """
+        LD B, E
+        Load value in register E into register B.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.b = self.e
-        self.m = 1
+        return 4
 
     def _op_44(self):
-        # LD B, H
+        """
+        LD B, H
+        Load value in register H into register B.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.b = self.h
-        self.m = 1
+        return 4
 
     def _op_45(self):
-        # LD B, L
+        """
+        LD B, L
+        Load value in register L into register B.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.b = self.l
-        self.m = 1
+        return 4
 
     def _op_46(self):
-        # LD B, (HL)
+        """
+        LD B, (HL)
+        Load value stored in memory address (HL) into register B.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.b = self.mmu.read_byte((self.h << 8) + self.l)
+        return 8
 
     def _op_47(self):
-        # LD B, A
+        """
+        LD B, A
+        Load value in register A into register B.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.b = self.a
-        self.m = 1
+        return 4
 
     def _op_48(self):
-        # LD C, B
+        """
+        LD C, B
+        Load value in register B into register C.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.c = self.b
-        self.m = 1
+        return 4
 
     def _op_49(self):
-        # LD C, C
-        self.m = 1
+        """
+        LD C, C
+        Load value in register C into register C. Essentially treated as a NOP.
+
+        Flags affected:
+        None
+        :return:
+        """
+        return 4
 
     def _op_4a(self):
-        # LD C, D
+        """
+        LD C, D
+        Load value in register D into register C
+
+        Flags affected:
+        None
+        :return:
+        """
         self.c = self.d
-        self.m = 1
+        return 4
 
     def _op_4b(self):
-        # LD C, E
+        """
+        LD C, E
+        Load value in register E into register C.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.c = self.e
-        self.m = 1
+        return 4
 
     def _op_4c(self):
-        # LD C, H
+        """
+        LD C, H
+        Load value in register H into register C.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.c = self.h
-        self.m = 1
+        return 4
 
     def _op_4d(self):
-        # LD C, L
+        """
+        LD C, L
+        Load value in register L into register C.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.c = self.l
-        self.m = 1
+        return 4
 
     def _op_4e(self):
-        # LD C, (HL)
+        """
+        LD C, (HL)
+        Load value at memory address (HL) into register C.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.c = self.mmu.read_byte((self.h << 8) + self.l)
+        return 4
 
     def _op_4f(self):
-        # LD C, A
+        """
+        LD C, A
+        Load value in register A into register C.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.c = self.a
-        self.m = 1
+        return 4
 
     def _op_50(self):
-        # LD D, B
+        """
+        LD D, B
+        Load value in register B into register D.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.d = self.b
-        self.m = 1
+        return 4
 
     def _op_51(self):
-        # LD D, C
+        """
+        LD D, C
+        Load value in register C into register D.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.d = self.c
-        self.m = 1
+        return 4
 
     def _op_52(self):
-        # LD D, D
-        self.m = 1
+        """
+        LD D, D
+        Load value in register D into register D. Essentially treated as a NOP.
+
+        Flags affected:
+        None
+        :return:
+        """
+        return 4
 
     def _op_53(self):
-        # LD D, E
+        """
+        LD D, E
+        Load value in register E into register D.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.d = self.e
-        self.m = 1
+        return 4
 
     def _op_54(self):
-        # LD D, H
+        """
+        LD D, H
+        Load value in register H into register D.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.d = self.h
-        self.m = 1
+        return 4
 
     def _op_55(self):
-        # LD D, L
+        """
+        LD D, L
+        Load value in register L into register D.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.d = self.l
-        self.m = 1
+        return 4
 
     def _op_56(self):
-        # LD D, (HL)
+        """
+        LD D, (HL)
+        Load value at memory address (HL) into register D.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.d = self.mmu.read_byte(self.h << 8 + self.l)
+        return 8
 
     def _op_57(self):
-        # LD D, A
+        """
+        LD D, A
+        Load value in register A into register D.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.d = self.a
-        self.m = 1
+        return 4
 
     def _op_58(self):
-        # LD E, B
+        """
+        LD E, B
+        Load value in register B into register E.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.e = self.b
-        self.m = 1
+        return 4
 
     def _op_59(self):
-        # LD E, C
+        """
+        LD E, C
+        Load value in register C into register E.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.e = self.c
-        self.m = 1
+        return 4
 
     def _op_5a(self):
-        # LD E, D
+        """
+        LD E, D
+        Load value in register D into register E.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.e = self.d
-        self.m = 1
+        return 4
 
     def _op_5b(self):
-        # LD E, E
-        self.m = 1
+        """
+        LD E, E
+        Load value in register E into register E. Essentially treated as a NOP.
+
+        Flags affected:
+        None
+        :return:
+        """
+        return 4
 
     def _op_5c(self):
-        # LD E, H
+        """
+        LD E, H
+        Load value in register H into register E.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.e = self.h
-        self.m = 1
+        return 4
 
     def _op_5d(self):
-        # LD E, L
+        """
+        LD E, L
+        Load value in register L into register E.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.e = self.l
-        self.m = 1
+        return 4
 
     def _op_5e(self):
-        # LD E, (HL)
+        """
+        LD E, (HL)
+        Load value in register B into register B.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.e = self.mmu.read_byte(self.h << 8 + self.l)
+        return 8
 
     def _op_5f(self):
-        # LD E, A
+        """
+        LD E, A
+        Load value in register A into register E.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.e = self.a
-        self.m = 1
+        return 4
 
     def _op_60(self):
-        # LD H, B
+        """
+        LD H, B
+        Load value in register B into register H.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.h = self.b
-        self.m = 1
+        return 4
 
     def _op_61(self):
-        # LD H, C
+        """
+        LD H, C
+        Load value in register C into register H.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.h = self.c
-        self.m = 1
+        return 4
 
     def _op_62(self):
-        # LD H, D
+        """
+        LD H, D
+        Load value in register D into register H.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.h = self.d
-        self.m = 1
+        return 4
 
     def _op_63(self):
-        # LD H, E
+        """
+        LD H, E
+        Load value in register E into register H.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.h = self.e
-        self.m = 1
+        return 4
 
     def _op_64(self):
-        # LD H, H
-        self.m = 1
+        """
+        LD H, H
+        Load value in register H into register H. Essentially treated as a NOP.
+
+        Flags affected:
+        None
+        :return:
+        """
+        return 4
 
     def _op_65(self):
-        # LD H, L
+        """
+        LD H, L
+        Load value in register L into register H.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.h = self.l
-        self.m = 1
+        return 4
 
     def _op_66(self):
-        # LD H, (HL)
+        """
+        LD H, (HL)
+        Load value at memory address (HL) into register H.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.h = self.mmu.read_byte(self.h << 8 + self.l)
+        return 8
 
     def _op_67(self):
-        # LD H, A
+        """
+        LD H, A
+        Load value in register A into register H.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.h = self.a
-        self.m = 1
+        return 4
 
     def _op_68(self):
-        # LD L, B
+        """
+        LD L, B
+        Load value in register B into register L.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.l = self.b
-        self.m = 1
+        return 4
 
     def _op_69(self):
-        # LD L, C
+        """
+        LD L, C
+        Load value in register C into register L.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.l = self.c
-        self.m = 1
+        return 4
 
     def _op_6a(self):
-        # LD L, D
+        """
+        LD L, D
+        Load value in register D into register L.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.l = self.d
-        self.m = 1
+        return 4
 
     def _op_6b(self):
-        # LD L, E
+        """
+        LD L, E
+        Load value in register E into register L.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.l = self.e
-        self.m = 1
+        return 4
 
     def _op_6c(self):
-        # LD L, H
+        """
+        LD L, H
+        Load value in register H into register L.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.l = self.h
-        self.m = 1
+        return 4
 
     def _op_6d(self):
-        # LD L, L
-        self.m = 1
+        """
+        LD L, L
+        Load value in register L into register L. Essentially treated as a NOP.
+
+        Flags affected:
+        None
+        :return:
+        """
+        return 4
 
     def _op_6e(self):
-        # LD L, (HL)
+        """
+        LD L, (HL)
+        Load value at memory address (HL) into register L.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.l = self.mmu.read_byte((self.h << 8) + self.l)
+        return 8
 
     def _op_6f(self):
-        # LD L, A
+        """
+        LD L, A
+        Load value in register A into register L.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.l = self.a
-        self.m = 1
+        return 4
 
     def _op_70(self):
-        # LD (HL), B
+        """
+        LD (HL), B
+        Load value in register B into memory address (HL).
+
+        Flags affected:
+        None
+        :return:
+        """
         self.mmu.write_byte((self.h << 8) + self.l, self.b)
+        return 8
 
     def _op_71(self):
-        # LD (HL), C
+        """
+        LD (HL), C
+        Load value in register C into memory address (HL)
+
+        Flags affected:
+        None
+        :return:
+        """
         self.mmu.write_byte((self.h << 8) + self.l, self.c)
+        return 8
 
     def _op_72(self):
-        # LD (HL), D
+        """
+        LD (HL), D
+        Load value in register D into memory address (HL)
+
+        Flags affected:
+        None
+        :return:
+        """
         self.mmu.write_byte((self.h << 8) + self.l, self.d)
+        return 8
 
     def _op_73(self):
-        # LD (HL), E
+        """
+        LD (HL), E
+        Load value in register E into memory address (HL).
+
+        Flags affected:
+        None
+        :return:
+        """
         self.mmu.write_byte((self.h << 8) + self.l, self.e)
+        return 8
 
     def _op_74(self):
-        # LD (HL), H
+        """
+        LD (HL), H
+        Load value in register H into memory address (HL).
+
+        Flags affected:
+        None
+        :return:
+        """
         self.mmu.write_byte((self.h << 8) + self.l, self.h)
+        return 8
 
     def _op_75(self):
-        # LD (HL), L
+        """
+        LD (HL), L
+        Load value in register L into memory address (HL)
+
+        Flags affected:
+        None
+        :return:
+        """
         self.mmu.write_byte((self.h << 8) + self.l, self.l)
+        return 8
 
     def _op_76(self):
-        # HALT
+        """
+        HALT
+        Halts cpu clock. Used in original GameBoy as a way to reduce energy consumption.
+        Will wait until an interrupt occurs.
+
+        Flags affected:
+        None
+        :return:
+        """
         # TODO: Implement once we have started working on cycle routines
-        pass
+        return 4
 
     def _op_77(self):
-        # LD (HL), A
+        """
+        LD (HL), A
+        Load value in register A into memory address (HL).
+
+        Flags affected:
+        None
+        :return:
+        """
         self.mmu.write_byte((self.h << 8) + self.l, self.a)
+        return 8
 
     def _op_78(self):
-        # LD A, B
+        """
+        LD A, B
+        Load value in register B into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.b
-        self.m = 1
+        return 4
 
     def _op_79(self):
-        # LD A, C
+        """
+        LD A, C
+        Load value in register C into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.c
-        self.m = 1
+        return 4
 
     def _op_7a(self):
-        # LD A, D
+        """
+        LD A, D
+        Load value in register D into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.d
-        self.m = 1
+        return 4
 
     def _op_7b(self):
-        # LD A, E
+        """
+        LD A, E
+        Load value in register E into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.e
-        self.m = 1
+        return 4
 
     def _op_7c(self):
-        # LD A, H
+        """
+        LD A, H
+        Load value in register H into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.h
-        self.m = 1
+        return 4
 
     def _op_7d(self):
-        # LD A, L
+        """
+        LD A, L
+        Load value in register L into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.l
-        self.m = 1
+        return 4
 
     def _op_7e(self):
-        # LD A, (HL)
+        """
+        LD A, (HL)
+        Load value at memory address (HL) into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.mmu.read_byte((self.h << 8) + self.l)
+        return 8
 
     def _op_7f(self):
-        # LD A, A
-        self.m = 1
+        """
+        LD A, A
+        Load value in register A into register A. Essentially treated as a NOP.
+
+        Flags affected:
+        None
+        :return:
+        """
+        return 4
 
     def _op_80(self):
         # ADD A, B
@@ -2062,6 +2706,7 @@ class Cpu(object):
         """
         if self.zero_flag == 0:
             self._op_cd()
+        self.hc_flag = 1
 
     def _op_c5(self):
         """
@@ -2656,7 +3301,6 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        print(hex(self.pc), hex(self.mmu.read_byte(self.pc)))
         self._cp(self.mmu.read_byte(self.pc))
         self.pc += 1
 
