@@ -2402,68 +2402,244 @@ class Cpu(object):
         return 4
 
     def _op_80(self):
-        # ADD A, B
+        """
+        ADD A, B
+        Adds values in registers A and B together and stores sum in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.b)
+        return 4
 
     def _op_81(self):
-        # ADD A, C
+        """
+        ADD A, C
+        Adds values in registers A and C together and stores sum in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.c)
+        return 4
 
     def _op_82(self):
-        # ADD A, D
+        """
+        ADD A, D
+        Adds values in registers A and D together and stores sum in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.d)
+        return 4
 
     def _op_83(self):
-        # ADD A, E
+        """
+        ADD A, E
+        Adds values in registers A and E together and stores sum in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.e)
+        return 4
 
     def _op_84(self):
-        # ADD A, H
+        """
+        ADD A, H
+        Adds values in registers A and H together and stores sum in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.h)
+        return 4
 
     def _op_85(self):
-        # ADD A, L
+        """
+        ADD A, L
+        Adds values in registers A and L together and stores sum in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.l)
+        return 4
 
     def _op_86(self):
-        # ADD A, (HL)
+        """
+        ADD A, (HL)
+        Adds value stored in memory address (HL) to regiter A and stores sum in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.mmu.read_byte((self.h << 8) + self.l))
+        return 8
 
     def _op_87(self):
-        # ADD A, A
+        """
+        ADD A, A
+        Doubles value stored in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.a)
+        return 4
 
     def _op_88(self):
-        # ADC A, B
+        """
+        ADC A, B
+        Add register A and B with carry bit and store value in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.b + self.carry_flag)
+        return 4
 
     def _op_89(self):
-        # ADC A, C
+        """
+        ADC A, C
+        Add register A and C with carry bit and store value in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.c + self.carry_flag)
+        return 4
 
     def _op_8a(self):
-        # ADC A, D
+        """
+        ADC A, D
+        Add register A and D with carry bit and store value in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.d + self.carry_flag)
+        return 4
 
     def _op_8b(self):
-        # ADC A, E
+        """
+        ADC A, E
+        Add register A and E with carry bit and store value in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.e + self.carry_flag)
+        return 4
 
     def _op_8c(self):
-        # ADC A, H
+        """
+        ADC A, H
+        Add register A and H with carry bit and store value in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.h + self.carry_flag)
+        return 4
 
     def _op_8d(self):
-        # ADC A, L
+        """
+        ADC A, L
+        Add register A and L with carry bit and store value in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.l + self.carry_flag)
+        return 4
 
     def _op_8e(self):
-        # ADC A, (HL)
+        """
+        ADC A, (HL)
+        Adds value stored in memory address (HL) to register A and carry flag and stores sum in register A.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.mmu.read_byte((self.h << 8) + self.l) + self.carry_flag)
+        return 8
 
     def _op_8f(self):
-        # ADC A, A
+        """
+        ADC A, A
+        Doubles register A and adds carry flag.
+
+        Flags affected:
+        Z - Set if value is zero
+        N - Set to 0
+        H - Set if carry from bit 3
+        C - Set if carry from bit 7
+        :return:
+        """
         self._add(self.a + self.carry_flag)
+        return 4
 
     def _op_90(self):
         # SUB A, B
