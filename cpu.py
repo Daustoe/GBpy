@@ -2642,69 +2642,253 @@ class Cpu(object):
         return 4
 
     def _op_90(self):
-        # SUB A, B
+        """
+        SUB A, B
+        Subtract value in register B from value in register A. Store remaining value in register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.b)
+        return 4
 
     def _op_91(self):
-        # SUB A, C
+        """
+        SUB A, C
+        Subtract value in register C from value in register A. Store remaining value in register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.c)
+        return 4
 
     def _op_92(self):
-        # SUB A, D
+        """
+        SUB A, D
+        Subtract value in register D from value in register A. Store remaining value in register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.d)
+        return 4
 
     def _op_93(self):
-        # SUB A, E
+        """
+        SUB A, E
+        Subtract value in register E from value in register A. Store remaining value in register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.e)
+        return 4
 
     def _op_94(self):
-        # SUB A, H
+        """
+        SUB A, H
+        Subtract value in register H from value in register A. Store remaining value in register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.h)
+        return 4
 
     def _op_95(self):
-        # SUB A, L
+        """
+        SUB A, L
+        Subtract value in register L from value in register A. Store remaining value in register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.l)
+        return 4
 
     def _op_96(self):
-        # SUB A, (HL)
+        """
+        SUB A, (HL)
+        Subtract value stored at memory address (HL) from value in register A. Store remaining value in register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.mmu.read_byte((self.h << 8) + self.l))
+        return 8
 
     def _op_97(self):
-        # SUB A, A
+        """
+        SUB A, A
+        Subtract register A from itself. Results in zero value every time.
+        May not trip carry flags if value is low enough.
+
+        Flags affected:
+        Z - Set to 0
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.a)
+        return 4
 
     def _op_98(self):
-        # SBC A, B
+        """
+        SBC A, B
+        Subtract register B from register A and the carry flag.
+        Store result in register A.
+
+        Flags affected:
+        Z - Set to 0
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.b + self.carry_flag)
+        return 4
 
     def _op_99(self):
-        # SBC A, C
+        """
+        SBC A, C
+        Subtract register C from register A and the carry flag.
+        Store result in register A.
+
+        Flags affected:
+        Z - Set to 0
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.c + self.carry_flag)
+        return 4
 
     def _op_9a(self):
-        # SBC A, D
+        """
+        SBC A, D
+        Subtract register D from register A and the carry flag.
+        Store result in register A.
+
+        Flags affected:
+        Z - Set to 0
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.d + self.carry_flag)
+        return 4
 
     def _op_9b(self):
-        # SBC A, E
+        """
+        SBC A, E
+        Subtract register E from register A and the carry flag.
+        Store result in register A.
+
+        Flags affected:
+        Z - Set to 0
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.e + self.carry_flag)
+        return 4
 
     def _op_9c(self):
-        # SBC A, H
+        """
+        SBC A, H
+        Subtract register H from register A and the carry flag.
+        Store result in register A.
+
+        Flags affected:
+        Z - Set to 0
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.h + self.carry_flag)
+        return 4
 
     def _op_9d(self):
-        # SBC A, L
+        """
+        SBC A, L
+        Subtract register L from register A and the carry flag.
+        Store result in register A.
+
+        Flags affected:
+        Z - Set to 0
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.l + self.carry_flag)
+        return 4
 
     def _op_9e(self):
-        # SBC A, (HL)
+        """
+        SBC A, (HL)
+        Subtract value stored at memory address (HL) from register A and the carry flag.
+        Store result in register A.
+
+        Flags affected:
+        Z - Set to 0
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.mmu.read_byte((self.h << 8) + self.l) + self.carry_flag)
+        return 8
 
     def _op_9f(self):
-        # SBC A, A
-        # TODO: May be able to optimize this if we care
+        """
+        SBC A, A
+        Subtract register A from register A and the carry flag.
+        Depending on carry flag, this may or may not result in 0.
+
+        Flags affected:
+        Z - Set to 0
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._sub(self.a + self.carry_flag)
+        return 4
 
     def _op_a0(self):
         # AND B
