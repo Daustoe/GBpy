@@ -42,6 +42,7 @@ class GPU(object):
         :param clock_ticks:
         :return:
         """
+        self.mode_clock += clock_ticks
         if self.mode == 2:
             # OAM read mode, scanline is active
             if(self.mode_clock >= 80):
@@ -60,6 +61,8 @@ class GPU(object):
             if self.mode_clock >= 204:
                 self.mode_clock = 0
                 self.line += 1
+                print('line:' + str(self.line))
+                self.mmu.mmio[0x44] += 1
 
                 if self.line == 143:
                     # last horizontal line run, move to v-blank

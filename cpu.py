@@ -13,6 +13,7 @@ class Cpu(object):
         self.mmu = mmu  # Memory Management Unit
         self.opcode = 0
         self.interrupts = False
+        self.clock_cycles = 0
 
         # Registers
         self.a = 0x01
@@ -22,11 +23,6 @@ class Cpu(object):
         self.e = 0xd8
         self.h = 0x01
         self.l = 0x4d
-
-        # clock values
-        self.m = 0
-        self.t = 0
-        self.clock = {'m': self.m, 't': self.t}
 
         # we keep the flags separate instead of in the f register. No need to complicate this process.
         self.zero_flag = 1     # 0x80
@@ -558,6 +554,7 @@ class Cpu(object):
         self.previous_pc = self.pc
         self.opcode = self.mmu.read_byte(self.pc)
 
+
         print('PC:\t' + hex(self.pc))
         print('SP:\t' + hex(self.sp) + '\n')
         print('A: \t' + hex(self.a))
@@ -572,9 +569,10 @@ class Cpu(object):
         print('\n')
 
         self.pc += 1
-        self.opcodes[self.opcode]()
+        cycles = self.opcodes[self.opcode]()
         self.pc &= 0xffff
-        self.clock['m'] = self.m
+
+        return cycles
 
     def registers(self):
         return [self.a, self.b, self.c, self.d, self.e, self.h, self.l]
@@ -3630,7 +3628,7 @@ class Cpu(object):
         """
         ext_op = self.ext_opcodes[self.mmu.read_byte(self.pc)]
         self.pc += 1
-        return ext_op() + 4
+        return ext_op()
 
     def _op_cc(self):
         """
@@ -4746,7 +4744,16 @@ class Cpu(object):
         pass
 
     def _op_cb_87(self):
-        pass
+        """
+        RES 0, A
+        Reset bit 0 in register A.
+
+        Flags affected:
+        None
+        :return:
+        """
+        self.a &= 0xfe
+        return 8
 
     def _op_cb_88(self):
         pass

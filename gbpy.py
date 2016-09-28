@@ -13,8 +13,8 @@ class Gbpy(pyglet.window.Window):
     def __init__(self, *args, **kwargs):
         super(Gbpy, self).__init__(*args, **kwargs)
         self.mmu = mmu.MMU()
-        self.cpu = cpu.Cpu(self.mmu)
         self.gpu = gpu.GPU(self.mmu)
+        self.cpu = cpu.Cpu(self.mmu)
         self.clear()
         self.set_vsync(False)
 
@@ -34,8 +34,9 @@ class Gbpy(pyglet.window.Window):
         """
         if not self.has_exit:
             self.dispatch_events()
-            self.cpu.cycle()
-            self.gpu.step()
+            cycles = self.cpu.cycle()
+            self.gpu.step(cycles)
+
 
     def on_key_press(self, symbol, modifiers):
         """
