@@ -1,5 +1,4 @@
 __author__ = 'Clayton Powell'
-import os
 
 
 class Cpu(object):
@@ -750,7 +749,8 @@ class Cpu(object):
     def _op_00(self):
         """
         NOP
-        0x00
+        No operation, clocks still cycle.
+
         :return:
         4
         """
@@ -759,7 +759,10 @@ class Cpu(object):
     def _op_01(self):
         """
         LD BC, d16
-        0x01
+        Store next two bytes read in register pair BC.
+
+        Flags affected:
+        None
         :return:
         """
         self.c = self.mmu.read_byte(self.pc)
@@ -770,7 +773,10 @@ class Cpu(object):
     def _op_02(self):
         """
         LD (BC), A
-        0x02
+        Store value in register A at memory address (BC)
+
+        Flags affected:
+        None
         :return:
         """
         self.mmu.write_byte((self.b << 8) + self.c, self.a)
@@ -800,7 +806,7 @@ class Cpu(object):
 
         Flags affected:
         Z - Set if result is zero
-        N - Reset
+        N - Reset to 0
         H - Set if carry from bit 3.
         C - Not affected
         :return:
@@ -811,7 +817,13 @@ class Cpu(object):
     def _op_05(self):
         """
         DEC B
-        0x05
+        Decrement register B.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Not affected
         :return:
         """
         self._dec('b')
@@ -820,7 +832,10 @@ class Cpu(object):
     def _op_06(self):
         """
         LD B, d8
-        0x06
+        Store next value read in register B.
+
+        Flags affected:
+        None
         :return:
         """
         self.b = self.mmu.read_byte(self.pc)
@@ -837,8 +852,6 @@ class Cpu(object):
         N - set to 0
         H - set to 0
         C - Contains old bit 7 data
-
-        0x07
         :return:
         """
         self.carry_flag = (self.a & 0x80) // 0x80
@@ -851,7 +864,10 @@ class Cpu(object):
     def _op_08(self):
         """
         LD (a16), SP
-        0x08
+        Store Stack Pointer into memory address given by next two bytes read.
+
+        Flags affected:
+        None
         :return:
         """
         self.mmu.write_word(self.pc, self.sp)
@@ -883,7 +899,10 @@ class Cpu(object):
     def _op_0a(self):
         """
         LD A, (BC)
-        0x0a
+        Store value at memory address (BC) in register A.
+
+        Flags affected:
+        None
         :return:
         """
         self.a = self.mmu.read_byte((self.b << 8) | self.c)
@@ -892,7 +911,10 @@ class Cpu(object):
     def _op_0b(self):
         """
         DEC BC
-        0x0b
+        Decrement register pair BC.
+
+        Flags affected:
+        None
         :return:
         """
         self.c = (self.c - 1) & 0xff
@@ -907,10 +929,9 @@ class Cpu(object):
 
         Flags affected:
         Z - Set if result is zero
-        N - Reset
+        N - Reset to 0
         H - Set if carry from bit 3.
         C - Not affected
-
         :return:
         """
         self._inc('c')
@@ -919,7 +940,13 @@ class Cpu(object):
     def _op_0d(self):
         """
         DEC C
-        0x0d
+        Decrement register C.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Not affected
         :return:
         """
         self._dec('c')
@@ -928,7 +955,10 @@ class Cpu(object):
     def _op_0e(self):
         """
         LD C, d8
-        0x0e
+        Store next byte read in register C.
+
+        Flags affected:
+        None
         :return:
         """
         self.c = self.mmu.read_byte(self.pc)
@@ -945,7 +975,6 @@ class Cpu(object):
         N - set to 0
         H - set to 0
         C - contains old bit 0 data
-        0x0f
         :return:
         """
         self.carry_flag = self.a & 0x1
@@ -958,7 +987,10 @@ class Cpu(object):
     def _op_10(self):
         """
         STOP 0
-        0x10
+        Stops cycles from continuing??
+
+        Flags affected:
+        None
         :return:
         """
         # TODO: Once cycles implemented, add functionality to stop cycles here.
@@ -967,7 +999,10 @@ class Cpu(object):
     def _op_11(self):
         """
         LD DE, d16
-        0x11
+        Store next two bytes read in register pair DE
+
+        Flags affected:
+        None
         :return:
         """
         self.e = self.mmu.read_byte(self.pc)
@@ -979,6 +1014,9 @@ class Cpu(object):
         """
         LD (DE), A
         Load value in memory at address in register pair DE into register A.
+
+        Flags affected:
+        None
         :return:
         """
         self.mmu.write_byte((self.d << 8) + self.e, self.a)
@@ -1033,7 +1071,14 @@ class Cpu(object):
         return 4
 
     def _op_16(self):
-        # LD D, d8
+        """
+        LD D, d8
+        Store next byte read in register D.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.d = self.mmu.read_byte(self.pc)
         self.pc += 1
         return 8
@@ -1042,6 +1087,9 @@ class Cpu(object):
         """
         RLA
         Rotate A left through Carry flag.
+
+        Flags affected:
+        None
         :return:
         """
         high_bit = (self.a & 0x80) << 7
@@ -1056,6 +1104,9 @@ class Cpu(object):
         """
         JR n
         Add n to current address (pc) and jump to it.
+
+        Flags affected:
+        None
         :return:
         """
         delta = self.mmu.read_byte(self.pc)
@@ -1089,14 +1140,23 @@ class Cpu(object):
         return 8
 
     def _op_1a(self):
-        # LD A, (DE)
+        """
+        Store value at memory address (DE) in register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.a = self.mmu.read_byte((self.d << 8) | self.e)
         return 8
 
     def _op_1b(self):
         """
         DEC DE
-        Decrement register DE
+        Decrement register DE.
+
+        Flags affected:
+        None
         :return:
         """
         self.e = (self.e - 1) & 0xff
@@ -1107,11 +1167,11 @@ class Cpu(object):
     def _op_1c(self):
         """
         INC E
-        Increment register.
+        Increment register E.
 
         Flags affected:
         Z - Set if result is zero
-        N - Reset
+        N - Reset to 0
         H - Set if carry from bit 3.
         C - Not affected
         :return:
@@ -1120,12 +1180,29 @@ class Cpu(object):
         return 4
 
     def _op_1d(self):
-        # DEC E
+        """
+        DEC E
+        Decrement register E.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Not affected
+        :return:
+        """
         self._dec('e')
         return 4
 
     def _op_1e(self):
-        # LD E, d8
+        """
+        LD E, d8
+        Store next byte read in register E.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.e = self.mmu.read_byte(self.pc)
         self.pc += 1
         return 8
@@ -1154,6 +1231,9 @@ class Cpu(object):
         """
         JR NZ, nn
         If zero flag == 0 then add n to current address and jump to it.
+
+        Flags affected:
+        None
         :return:
         """
         if self.zero_flag == 0:
@@ -1170,7 +1250,14 @@ class Cpu(object):
         return 12
 
     def _op_22(self):
-        # LD (HL+), A
+        """
+        LD (HL+), A
+        Store value in register A at memory location (HL). Increment register pair HL afterwards.
+
+        Flags affected:
+        None
+        :return:
+        """
         # TODO: is this increment HL or increment memory at addr HL?
         self.mmu.write_byte((self.h << 8) + self.l, self.a)
         self.l = (self.l + 1) & 0xff
@@ -1193,7 +1280,6 @@ class Cpu(object):
         self.l = (self.l + 1) & 0xff
         if self.l == 0:
             self.h = (self.h + 1) & 0xff
-        return 4
         return 8
 
     def _op_24(self):
@@ -1275,6 +1361,9 @@ class Cpu(object):
         """
         JR NZ, nn
         If zero flag == 1 then add n to current address and jump to it.
+
+        Flags affected:
+        None
         :return:
         """
         if self.zero_flag:
@@ -1390,6 +1479,9 @@ class Cpu(object):
         """
         JR NZ, nn
         If carry flag == 0 then add n to current address and jump to it.
+
+        Flags affected:
+        None
         :return:
         """
         if self.carry_flag == 0:
