@@ -2891,193 +2891,575 @@ class Cpu(object):
         return 4
 
     def _op_a0(self):
-        # AND B
-        # possible half carry flag set on every AND op
+        """
+        AND B
+        Logical bitwise AND the registers A and B, store result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 1
+        C - Set to 0
+        :return:
+        """
         self._and(self.b)
+        return 4
 
     def _op_a1(self):
-        # AND C
+        """
+        AND C
+        Logical bitwise AND the registers A and C, store result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 1
+        C - Set to 0
+        :return:
+        """
         self._and(self.c)
+        return 4
 
     def _op_a2(self):
-        # AND D
+        """
+        AND D
+        Logical bitwise AND the registers A and D, store result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 1
+        C - Set to 0
+        :return:
+        """
         self._and(self.d)
+        return 4
 
     def _op_a3(self):
-        # AND E
+        """
+        AND E
+        Logical bitwise AND the registers A and E, store result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 1
+        C - Set to 0
+        :return:
+        """
         self._and(self.e)
+        return 4
 
     def _op_a4(self):
-        # AND H
+        """
+        AND H
+        Logical bitwise AND the registers A and H, store result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 1
+        C - Set to 0
+        :return:
+        """
         self._and(self.h)
+        return 4
 
     def _op_a5(self):
-        # AND L
+        """
+        AND L
+        Logical bitwise AND the registers A and L, store result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 1
+        C - Set to 0
+        :return:
+        """
         self._and(self.l)
+        return 4
 
     def _op_a6(self):
-        # AND (HL)
+        """
+        AND (HL)
+        Logical bitwise AND the value stored in memory at (HL) and the register A. Store the result in register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 1
+        C - Set to 0
+        :return:
+        """
         self._and(self.mmu.read_byte((self.h << 8) + self.l))
+        return 8
 
     def _op_a7(self):
-        # AND A
+        """
+        AND A
+        Logical bitwise AND the registers A and A, store result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 1
+        C - Set to 0
+        :return:
+        """
         self._and(self.a)
+        return 4
 
     def _op_a8(self):
-        # XOR B
+        """
+        XOR B
+        Logical bitwise XOR the registers A and B, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._xor(self.b)
+        return 4
 
     def _op_a9(self):
-        # XOR C
+        """
+        XOR C
+        Logical bitwise XOR the registers A and C, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._xor(self.c)
+        return 4
 
     def _op_aa(self):
-        # XOR D
+        """
+        XOR D
+        Logical bitwise XOR the registers A and D, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._xor(self.d)
+        return 4
 
     def _op_ab(self):
-        # XOR E
+        """
+        XOR E
+        Logical bitwise XOR the registers A and E, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._xor(self.e)
+        return 4
 
     def _op_ac(self):
-        # XOR H
+        """
+        XOR H
+        Logical bitwise XOR the registers A and H, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._xor(self.h)
+        return 4
 
     def _op_ad(self):
-        # XOR L
+        """
+        XOR L
+        Logical bitwise XOR the registers A and L, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._xor(self.l)
+        return 4
 
     def _op_ae(self):
-        # XOR (HL)
+        """
+        XOR (HL)
+        Logical bitwise XOR the value stored in memory at address (HL) and register A. Store result in register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._xor(self.mmu.read_byte((self.h << 8) + self.l))
+        return 8
 
     def _op_af(self):
-        # XOR A
+        """
+        XOR A
+        Logical bitwise XOR the registers A and A, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._xor(self.a)
+        return 4
 
     def _op_b0(self):
-        # OR B
+        """
+        OR B
+        Logical bitwise OR the registers A and B, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._or(self.b)
+        return 4
 
     def _op_b1(self):
-        # OR C
+        """
+        OR C
+        Logical bitwise OR the registers A and C, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._or(self.c)
+        return 4
 
     def _op_b2(self):
-        # OR D
+        """
+        OR D
+        Logical bitwise OR the registers A and D, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._or(self.d)
+        return 4
 
     def _op_b3(self):
-        # OR E
+        """
+        OR E
+        Logical bitwise OR the registers A and E, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._or(self.e)
+        return 4
 
     def _op_b4(self):
-        # OR H
+        """
+        OR H
+        Logical bitwise OR the registers A and H, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._or(self.h)
+        return 4
 
     def _op_b5(self):
-        # OR L
+        """
+        OR L
+        Logical bitwise OR the registers A and L, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._or(self.l)
+        return 4
 
     def _op_b6(self):
-        # OR (HL)
+        """
+        OR (HL)
+        Logical bitwise OR the value stored in memory at address (HL) and register A. Store the result in register A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._or(self.mmu.read_byte((self.h << 8) + self.l))
+        return 8
 
     def _op_b7(self):
-        # OR A
+        """
+        OR A
+        Logical bitwise OR the registers A and A, store the result in A.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        :return:
+        """
         self._or(self.a)
+        return 4
 
     def _op_b8(self):
-        # CP B
+        """
+        CP B
+        Compare register B to register A. Basically does a subtraction routine but does not store the result.
+        Only flags are affected.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._cp(self.b)
+        return 4
 
     def _op_b9(self):
-        # CP C
+        """
+        CP C
+        Compare register C to register A. Basically does a subtraction routine but does not store the result.
+        Only flags are affected.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._cp(self.c)
+        return 4
 
     def _op_ba(self):
-        # CP D
+        """
+        CP D
+        Compare register D to register A. Basically does a subtraction routine but does not store the result.
+        Only flags are affected.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._cp(self.d)
+        return 4
 
     def _op_bb(self):
-        # CP E
+        """
+        CP E
+        Compare register E to register A. Basically does a subtraction routine but does not store the result.
+        Only flags are affected.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._cp(self.e)
+        return 4
 
     def _op_bc(self):
-        # CP H
+        """
+        CP H
+        Compare register H to register A. Basically does a subtraction routine but does not store the result.
+        Only flags are affected.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._cp(self.h)
+        return 4
 
     def _op_bd(self):
-        # CP L
+        """
+        CP L
+        Compare register L to register A. Basically does a subtraction routine but does not store the result.
+        Only flags are affected.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._cp(self.l)
+        return 4
 
     def _op_be(self):
-        # CP (HL)
+        """
+        CP (HL)
+        Compare value stored in memory at (HL) with register A.
+        Basically does a subtraction routine but does not store the result.
+        Only flags are affected.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 1
+        H - Set if no borrow from bit 4
+        C - Set if no borrow
+        :return:
+        """
         self._cp(self.mmu.read_byte((self.h << 8) + self.l))
+        return 8
 
     def _op_bf(self):
-        # CP A
+        """
+        CP A
+        Compare register A to register A. Sets flags as seen below
+
+        Flags affected:
+        Z - 1
+        N - 1
+        H - 0
+        C - 0
+        :return:
+        """
         self.zero_flag = 1
         self.sub_flag = 1
         self.hc_flag = 0
         self.carry_flag = 0
+        return 4
 
     def _op_c0(self):
         """
         RET NZ
         Return if Zero flag is set to 0
+
+        Flags affected:
+        None
         :return:
         """
         if self.zero_flag == 0:
-            self._op_c9()
+            return self._op_c9() + 4
+        return 8
 
     def _op_c1(self):
         """
         POP BC
         Pop two bytes off stack into register pair BC. Increment Stack Pointer (SP) twice.
+
+        Flags affected:
+        None
         :return:
         """
         self.b = self.mmu.read_byte(self.sp + 1)
         self.c = self.mmu.read_byte(self.sp)
         self.sp = (self.sp + 2) & 0xffff
+        return 12
 
     def _op_c2(self):
         """
         JP NZ, nn
         Jump to address nn if zero flag == 0
+
+        Flags affected:
+        None
         :return:
         """
         if self.zero_flag == 0:
-            self._op_c3()
+            return self._op_c3()
+        return 12
 
     def _op_c3(self):
         """
         JP nn
         Jump to address nn. nn is two next bytes read from memory at current program counter (pc)
+
+        Flags affected:
+        None
         :return:
         """
         self.pc = (self.mmu.read_byte(self.pc + 1) << 8) + self.mmu.read_byte(self.pc)
+        return 16
 
     def _op_c4(self):
         """
         CALL NZ, nn
         Call address nn if Zero flag is set to 0.
+
+        Flags affected:
+        None
         :return:
         """
         if self.zero_flag == 0:
-            self._op_cd()
-        self.hc_flag = 1
+            return self._op_cd()
+        return 12
 
     def _op_c5(self):
         """
         PUSH BC
         Push register pair BC onto stack.
         Decrement Stack Pointer (SP) twice.
+
+        Flags affected:
+        None
         :return:
         """
         self.sp = (self.sp - 2) & 0xffff
         self.mmu.write_byte(self.sp, self.c)
         self.mmu.write_byte(self.sp + 1, self.b)
+        return 16
 
     def _op_c6(self):
         """
@@ -3093,44 +3475,61 @@ class Cpu(object):
         """
         self._add(self.mmu.read_byte(self.pc))
         self.pc += 1
+        return 8
 
     def _op_c7(self):
         """
         RST 0x00
         Push present address onto stack. (PC)
         Jump to address 0x0000
+
+        Flags affected:
+        None
         :return:
         """
         self._rst(0x0)
+        return 16
 
     def _op_c8(self):
         """
         RET Z
         Return if Zero flag is set to 1
+
+        Flags affected:
+        None
         :return:
         """
         if self.zero_flag:
-            self._op_c9()
+            return self._op_c9() + 4
+        return 8
 
     def _op_c9(self):
         """
         RET
         Pop two bytes from stack and jump to that address.
+
+        Flags affected:
+        None
         :return:
         """
         low = self.mmu.read_byte(self.sp)
         high = self.mmu.read_byte(self.sp + 1)
         self.sp = (self.sp + 2) & 0xffff
         self.pc = (high << 8) | low
+        return 16
 
     def _op_ca(self):
         """
         JP Z, nn
         Jump to address nn if zero flag == 1
+
+        Flags affected:
+        None
         :return:
         """
         if self.zero_flag:
-            self._op_c3()
+            return self._op_c3()
+        return 12
 
     def _op_cb(self):
         """
@@ -3139,21 +3538,28 @@ class Cpu(object):
         """
         ext_op = self.ext_opcodes[self.mmu.read_byte(self.pc)]
         self.pc += 1
-        ext_op()
+        return ext_op() + 4
 
     def _op_cc(self):
         """
         CALL Z,nn
         Call address nn if Zero flag is set to 1
+
+        Flags affected:
+        None
         :return:
         """
         if self.zero_flag:
-            self._op_cd()
+            return self._op_cd()
+        return 12
 
     def _op_cd(self):
         """
         CALL nn
         Push address of next instruction onto stack and then jump to address nn.
+
+        Flags affected:
+        None
         :return:
         """
         self.sp = (self.sp - 2) & 0xffff
@@ -3163,6 +3569,7 @@ class Cpu(object):
         self.mmu.write_byte(self.sp, self.pc & 0xff)
         self.mmu.write_byte(self.sp + 1, self.pc >> 8)
         self.pc = call_addr
+        return 24
 
     def _op_ce(self):
         """
@@ -3178,43 +3585,60 @@ class Cpu(object):
         """
         self._add(self.mmu.read_byte(self.pc) + self.carry_flag)
         self.pc += 1
+        return 8
 
     def _op_cf(self):
         """
         RST 0x8
         Push present address onto stack. (PC)
         Jump to address 0x0008
+
+        Flags affected:
+        None
         :return:
         """
         self._rst(0x8)
+        return 16
 
     def _op_d0(self):
         """
         RET NC
         Return if Carr flag is set to 0
+
+        Flags affected:
+        None
         :return:
         """
         if self.carry_flag == 0:
-            self._op_c9()
+            return self._op_c9() + 4
+        return 8
 
     def _op_d1(self):
         """
         POP DE
         Pop two bytes off stack into register pair BC. Increment Stack Pointer (SP) twice.
+
+        Flags affected:
+        None
         :return:
         """
         self.d = self.mmu.read_byte(self.sp + 1)
         self.e = self.mmu.read_byte(self.sp)
         self.sp = (self.sp + 2) & 0xffff
+        return 12
 
     def _op_d2(self):
         """
         JP NC, nn
         Jump to address nn if carry flag == 0
+
+        Flags affected:
+        None
         :return:
         """
         if self.carry_flag == 0:
-            self._op_c3()
+            return self._op_c3()
+        return 12
 
     def _op_d3(self):
         """
@@ -3227,21 +3651,29 @@ class Cpu(object):
         """
         CALL NC, nn
         Call address nn if Carry flag is set to 0.
+
+        Flags affected:
+        None
         :return:
         """
         if self.carry_flag == 0:
-            self._op_cd()
+            return self._op_cd()
+        return 12
 
     def _op_d5(self):
         """
         PUSH DE
         Push register pair DE onto stack.
         Decrement Stack Pointer (SP) twice.
+
+        Flags affected:
+        None
         :return:
         """
         self.sp = (self.sp - 2) & 0xffff
         self.mmu.write_byte(self.sp, self.e)
         self.mmu.write_byte(self.sp + 1, self.d)
+        return 16
 
     def _op_d6(self):
         """
@@ -3257,42 +3689,59 @@ class Cpu(object):
         """
         self._sub(self.mmu.read_byte(self.pc))
         self.pc += 1
+        return 8
 
     def _op_d7(self):
         """
         RST 0x10
         Push present address onto stack. (PC)
         Jump to address 0x0010
+
+        Flags affected:
+        None
         :return:
         """
         self._rst(0x10)
+        return 16
 
     def _op_d8(self):
         """
         RET C
         Return if Carry flag is set to 1
+
+        Flags affected:
+        None
         :return:
         """
         if self.carry_flag:
-            self._op_c9()
+            return self._op_c9() + 4
+        return 8
 
     def _op_d9(self):
         """
         RETI
-        Return
+        Return and enable interrupts.
+
+        Flags affected:
+        None
         :return:
         """
         self._op_c9()
         self.interrupts = True
+        return 16
 
     def _op_da(self):
         """
         JP C, nn
         Jump to address nn if carry flag == 1
+
+        Flags affected:
+        None
         :return:
         """
         if self.carry_flag:
-            self._op_c3()
+            return self._op_c3()
+        return 12
 
     def _op_db(self):
         """
@@ -3305,10 +3754,14 @@ class Cpu(object):
         """
         CALL C, nn
         Call address nn if Carry flag is set to 1.
+
+        Flags affected:
+        None
         :return:
         """
         if self.carry_flag:
-            self._op_cd()
+            return self._op_cd()
+        return 12
 
     def _op_dd(self):
         """
@@ -3331,44 +3784,60 @@ class Cpu(object):
         """
         self._sub(self.mmu.read_byte(self.pc) + self.carry_flag)
         self.pc += 1
+        return 8
 
     def _op_df(self):
         """
         RST 0x18
         Push present address onto stack. (PC)
         Jump to address 0x0018
+
+        Flags affected:
+        None
         :return:
         """
         self._rst(0x18)
+        return 16
 
     def _op_e0(self):
         """
         LDH (n), A
         Load A into memory address 0xff00 + n
+
+        Flags affected:
+        None
         :return:
         """
-        print(self.a)
         offset = self.mmu.read_byte(self.pc)
         self.pc += 1
         self.mmu.write_byte(0xff00 + offset, self.a)
+        return 12
 
     def _op_e1(self):
         """
         POP HL
         Pop two bytes off stack into register pair BC. Increment Stack Pointer (SP) twice.
+
+        Flags affected:
+        None
         :return:
         """
         self.h = self.mmu.read_byte(self.sp + 1)
         self.l = self.mmu.read_byte(self.sp)
         self.sp = (self.sp + 2) & 0xffff
+        return 12
 
     def _op_e2(self):
         """
         LD (C), A
         Put A into address 0xff00 + register C
+
+        Flags affected:
+        None
         :return:
         """
         self.mmu.write_byte((0xff00 + self.c), self.a)
+        return 8
 
     def _op_e3(self):
         """
@@ -3389,11 +3858,15 @@ class Cpu(object):
         PUSH HL
         Push register pair HL onto stack.
         Decrement Stack Pointer (SP) twice.
+
+        Flags affected:
+        None
         :return:
         """
         self.sp = (self.sp - 2) & 0xffff
         self.mmu.write_byte(self.sp, self.l)
         self.mmu.write_byte(self.sp + 1, self.h)
+        return 16
 
     def _op_e6(self):
         """
@@ -3407,17 +3880,22 @@ class Cpu(object):
         C - reset to 0
         :return:
         """
-        self._and(self.mmu.read_byte(self.pc))  # flags taken care of in _and method
+        self._and(self.mmu.read_byte(self.pc))
         self.pc += 1
+        return 8
 
     def _op_e7(self):
         """
         RST 0x20
         Push present address onto stack.
         Jump to address 0x0020
+
+        Flags affected:
+        None
         :return:
         """
         self._rst(0x20)
+        return 16
 
     def _op_e8(self):
         """
@@ -3445,19 +3923,27 @@ class Cpu(object):
             self.carry_flag = 0
 
         self.sp = (self.sp + data) & 0xffff
+        return 16
 
     def _op_e9(self):
         """
         JP (HL)
         Jump to address contained in HL
+
+        Flags affected:
+        None
         :return:
         """
         self.pc = self.mmu.read_byte((self.h << 8) + self.l)
+        return 4
 
     def _op_ea(self):
         """
         LD (nn), A
         Put value A into memory range given by next two bytes read from pc.
+
+        Flags affected:
+        None
         :return:
         """
         addr = self.mmu.read_byte(self.pc)
@@ -3465,6 +3951,7 @@ class Cpu(object):
         addr |= (self.mmu.read_byte(self.pc) << 8)
         self.pc += 1
         self.mmu.write_byte(addr, self.a)
+        return 16
 
     def _op_eb(self):
         """
@@ -3501,44 +3988,71 @@ class Cpu(object):
         """
         self._xor(self.mmu.read_byte(self.pc))
         self.pc += 1
+        return 8
 
     def _op_ef(self):
         """
         RST 0x28
         Push present address onto stack.
         Jump to address 0x0028
+
+        Flags affected:
+        None
         :return:
         """
         self._rst(0x28)
+        return 16
 
     def _op_f0(self):
-        # LDH A, (a8)
+        """
+        LDH A, (a8)
+        Load value stored in memory address 0xFF00 + n into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         offset = self.mmu.read_byte(self.pc)
         self.pc += 1
         self.a = self.mmu.read_byte(0xff00 | offset)
+        return 12
 
     def _op_f1(self):
         """
-        POP BC
-        Pop two bytes off stack into register pair BC. Increment Stack Pointer (SP) twice.
+        POP AF
+        Pop two bytes off stack into register A and flags register. Increment Stack Pointer (SP) twice.
         :return:
         """
         self.a = self.mmu.read_byte(self.sp + 1)
         self.f = self.mmu.read_byte(self.sp) & 0xf0  # flags only hold four bits here
         # TODO: need to translate this read into our separate flags
         self.sp = (self.sp + 2) & 0xffff
+        return 12
 
     def _op_f2(self):
+        """
+        LD A, (C)
+        Load value stored at memory address 0xFF00 + C into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         # LD A, (C)
         self.a = self.mmu.read_byte(0xff00 + self.c)
+        return 8
 
     def _op_f3(self):
         """
         DI
-        Disable
+        Disable Interrupts
+
+        Flags affected:
+        None
         :return:
         """
         self.interrupts = False
+        return 4
 
     def _op_f4(self):
         """
@@ -3552,12 +4066,16 @@ class Cpu(object):
         PUSH AF
         Push register pair AF onto stack.
         Decrement Stack Pointer (SP) twice.
+
+        Flags affected:
+        None
         :return:
         """
         # TODO: need to find a way to implement pushing/popping flags register
         self.sp = (self.sp - 2) & 0xffff
         self.mmu.write_byte(self.sp, self.f)
         self.mmu.write_byte(self.sp + 1, self.a)
+        return 16
 
     def _op_f6(self):
         """
@@ -3573,15 +4091,20 @@ class Cpu(object):
         """
         self._or(self.mmu.read_byte(self.pc))
         self.pc += 1
+        return 8
 
     def _op_f7(self):
         """
         RST 0x30
         Push present address onto stack.
         Jump to address 0x0030
+
+        Flags affected:
+        None
         :return:
         """
         self._rst(0x30)
+        return 16
 
     def _op_f8(self):
         """
@@ -3611,28 +4134,46 @@ class Cpu(object):
             self.carry_flag = 1
         else:
             self.carry_flag = 0
+        return 12
 
     def _op_f9(self):
         """
         LD SP, HL
         Put HL into Stack Pointer (SP)
+
+        Flags affected:
+        None
         :return:
         """
         self.sp = (self.h << 8) | self.l
+        return 8
 
     def _op_fa(self):
+        """
+        LD A, (a16)
+        Store value at memory address given by next two read bytes into register A.
+
+        Flags affected:
+        None
+        :return:
+        """
         # LD A, (a16)
         self.a = self.mmu.read_word(self.pc)
         self.pc += 2
+        return 16
 
     def _op_fb(self):
         """
         EI
         Enable interrupts, but not immediately. Interrupts are enabled after instruction after EI is executed.
+
+        Flags affected:
+        None
         :return:
         """
         # TODO: Need to wait one instruction then enable interrupts
         self.interrupts = True
+        return 4
 
     def _op_fc(self):
         """
@@ -3663,6 +4204,7 @@ class Cpu(object):
         """
         self._cp(self.mmu.read_byte(self.pc))
         self.pc += 1
+        return 8
 
     def _op_ff(self):
         """
@@ -3672,6 +4214,7 @@ class Cpu(object):
         :return:
         """
         self._rst(0x38)
+        return 16
 
     def _op_cb_00(self):
         pass
