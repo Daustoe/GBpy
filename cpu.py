@@ -1,5 +1,5 @@
 __author__ = 'Clayton Powell'
-
+from register import Register
 
 class Cpu(object):
     """
@@ -7,22 +7,23 @@ class Cpu(object):
     """
 
     def __init__(self, mmu):
-        self.pc = 0x100  # Program Counter
+        self.pc = Register(0x100)  # Program Counter
         self.previous_pc = 0
-        self.sp = 0xfffe  # Stack Pointer
+        self.sp = Register(0xfffe)  # Stack Pointer
         self.mmu = mmu  # Memory Management Unit
         self.opcode = 0
         self.interrupts = False
         self.clock_cycles = 0
 
         # Registers
-        self.a = 0x01
-        self.b = 0
-        self.c = 0x13
-        self.d = 0
-        self.e = 0xd8
-        self.h = 0x01
-        self.l = 0x4d
+        self.a = Register(0x1)
+        test = self.a - 1
+        self.b = Register(0)
+        self.c = Register(0x13)
+        self.d = Register(0)
+        self.e = Register(0xd8)
+        self.h = Register(0x01)
+        self.l = Register(0x4d)
 
         # we keep the flags separate instead of in the f register. No need to complicate this process.
         self.zero_flag = 1     # 0x80
@@ -569,7 +570,11 @@ class Cpu(object):
         print('\n')
         '''
         self.pc += 1
-        cycles = self.opcodes[self.opcode]()
+        try:
+            cycles = self.opcodes[self.opcode]()
+        except KeyError:
+            print(self.pc)
+            print(self.opcode)
         self.pc &= 0xffff
 
         return cycles

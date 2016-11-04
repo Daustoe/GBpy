@@ -159,7 +159,7 @@ class MMU(object):
             pass
         else:
             # ROM Bank 0
-            return self.rom[addr]
+            return self.rom[int(addr)]
 
     def read_word(self, addr):
         """
