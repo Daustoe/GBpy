@@ -554,7 +554,7 @@ class Cpu(object):
         self.previous_pc = self.pc
         self.opcode = self.mmu.read_byte(self.pc)
 
-
+        '''
         print('PC:\t' + hex(self.pc))
         print('SP:\t' + hex(self.sp) + '\n')
         print('A: \t' + hex(self.a))
@@ -567,7 +567,7 @@ class Cpu(object):
         print('Flags:')
         print('\tZ: ' + str(self.zero_flag) + '\tN: ' + str(self.sub_flag) + '\tH: ' + str(self.hc_flag) + '\tC: ' + str(self.carry_flag))
         print('\n')
-
+        '''
         self.pc += 1
         cycles = self.opcodes[self.opcode]()
         self.pc &= 0xffff
@@ -1064,7 +1064,6 @@ class Cpu(object):
         C - Not affected
         :return:
         """
-        # DEC D
         self._dec('d')
         return 4
 
@@ -1241,7 +1240,14 @@ class Cpu(object):
             return 8
 
     def _op_21(self):
-        # LD HL, d16
+        """
+        LD HL, d16
+        Load next two bytes from memory at PC into register pair HL.
+
+        Flags affected:
+        None
+        :return:
+        """
         self.l = self.mmu.read_byte(self.pc)
         self.h = self.mmu.read_byte(self.pc + 1)
         self.pc += 2
@@ -1256,7 +1262,6 @@ class Cpu(object):
         None
         :return:
         """
-        # TODO: is this increment HL or increment memory at addr HL?
         self.mmu.write_byte((self.h << 8) + self.l, self.a)
         self.l = (self.l + 1) & 0xff
         if self.l == 0:
@@ -1395,7 +1400,9 @@ class Cpu(object):
         :return:
         """
         self.a = self.mmu.read_byte((self.h << 8) + self.l)
-        # TODO: INC (HL)
+        self.l = (self.l + 1) & 0xff
+        if self.l == 0:
+            self.h = (self.h + 1) & 0xff
         return 8
 
     def _op_2b(self):
@@ -1407,7 +1414,6 @@ class Cpu(object):
         None
         :return:
         """
-        # DEC HL
         self.l = (self.l - 1) & 255
         if self.l == 255:
             self.h = (self.h - 1) & 255
@@ -1583,9 +1589,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.pc)
+        self.mmu.write_byte((self.h << 8) + self.l, self.mmu.read_byte(self.pc))
         self.pc += 1
-        # TODO: this may need to be updated. Will have to check whether it should be pc, or location in rom at pc
         return 12
 
     def _op_37(self):
@@ -1652,7 +1657,9 @@ class Cpu(object):
         :return:
         """
         self.a = self.mmu.read_byte((self.h << 8) + self.l)
-        # TODO: DEC (HL)
+        temp = self.mmu.read_byte((self.h << 8) + self.l)
+        temp = (temp - 1) & 0xff
+        self.mmu.write_byte((self.h << 8) + self.l, temp)
         return 8
 
     def _op_3b(self):
@@ -1664,7 +1671,6 @@ class Cpu(object):
         None
         :return:
         """
-        # DEC SP
         self.sp = (self.sp - 1) & 0xffff
         return 8
 
@@ -4128,7 +4134,6 @@ class Cpu(object):
         None
         :return:
         """
-        # LD A, (C)
         self.a = self.mmu.read_byte(0xff00 + self.c)
         return 8
 
@@ -4247,7 +4252,6 @@ class Cpu(object):
         None
         :return:
         """
-        # LD A, (a16)
         self.a = self.mmu.read_word(self.pc)
         self.pc += 2
         return 16

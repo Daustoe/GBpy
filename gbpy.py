@@ -26,7 +26,7 @@ class Gbpy(pyglet.window.Window):
         """
         self.mmu.load(rom_path)
 
-    def main(self, dt):
+    def main(self):
         """
         Main loop of the emulator. Handles keyboard events and cpu cycle.
         :param dt:

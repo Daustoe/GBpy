@@ -22,10 +22,8 @@ class GPU(object):
         self.mode_clock = 0
         self.reg = []
         self.scan_row = []
-        self.display = image.ImageData(144, 160, 'RGB', [0] * 144 * 160)
-        self.tilemap = [0] * 144
-        for each in range(144):
-            self.tilemap[each] = [0x0] * 160
+        pattern = image.SolidColorImagePattern(color=(255, 255, 255, 255))
+        self.display = pattern.create_image(144, 160).get_image_data()
 
         self.color_map = {
             0: '#FFFFFF',
@@ -42,6 +40,7 @@ class GPU(object):
         :param clock_ticks:
         :return:
         """
+
         self.mode_clock += clock_ticks
         if self.mode == 2:
             # OAM read mode, scanline is active
@@ -61,7 +60,6 @@ class GPU(object):
             if self.mode_clock >= 204:
                 self.mode_clock = 0
                 self.line += 1
-                print('line:' + str(self.line))
                 self.mmu.mmio[0x44] += 1
 
                 if self.line == 143:

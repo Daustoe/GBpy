@@ -11,5 +11,8 @@ if __name__ == '__main__':
     template = pyglet.gl.Config(double_buffer=False)
     emulator = gbpy.Gbpy(160, 144, config=template, caption="GameBoy Emulator")
     emulator.load_rom(args.rom)
-    pyglet.clock.schedule_interval(emulator.main, 1/1000)
-    pyglet.app.run()
+    #pyglet.clock.schedule_interval(emulator.main, 1/1000)
+    #pyglet.app.run()
+    while True:
+        pyglet.clock.tick()
+        emulator.main()
