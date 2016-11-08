@@ -17,7 +17,6 @@ class Cpu(object):
 
         # Registers
         self.a = Register(0x1)
-        test = self.a - 1
         self.b = Register(0)
         self.c = Register(0x13)
         self.d = Register(0)
@@ -556,15 +555,15 @@ class Cpu(object):
         self.opcode = self.mmu.read_byte(self.pc)
 
         '''
-        print('PC:\t' + hex(self.pc))
-        print('SP:\t' + hex(self.sp) + '\n')
-        print('A: \t' + hex(self.a))
-        print('B: \t' + hex(self.b))
-        print('C: \t' + hex(self.c))
-        print('D: \t' + hex(self.d))
-        print('E: \t' + hex(self.e))
-        print('H: \t' + hex(self.h))
-        print('L: \t' + hex(self.l) + '\n')
+        print('PC:\t' + self.pc)
+        print('SP:\t' + self.sp + '\n')
+        print('A: \t' + self.a)
+        print('B: \t' + self.b)
+        print('C: \t' + self.c)
+        print('D: \t' + self.d)
+        print('E: \t' + self.e)
+        print('H: \t' + self.h)
+        print('L: \t' + self.l + '\n')
         print('Flags:')
         print('\tZ: ' + str(self.zero_flag) + '\tN: ' + str(self.sub_flag) + '\tH: ' + str(self.hc_flag) + '\tC: ' + str(self.carry_flag))
         print('\n')
@@ -575,7 +574,6 @@ class Cpu(object):
         except KeyError:
             print(self.pc)
             print(self.opcode)
-        self.pc &= 0xffff
 
         return cycles
 
