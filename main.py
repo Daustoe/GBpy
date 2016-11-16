@@ -2,6 +2,7 @@ __author__ = 'Clayton Powell'
 import gbpy
 import pyglet
 import argparse
+import register
 
 
 if __name__ == '__main__':
@@ -14,5 +15,4 @@ if __name__ == '__main__':
     #pyglet.clock.schedule_interval(emulator.main, 1/1000)
     #pyglet.app.run()
     while True:
-        pyglet.clock.tick()
         emulator.main()

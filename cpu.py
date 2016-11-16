@@ -1,5 +1,8 @@
 __author__ = 'Clayton Powell'
-from register import Register
+from registers import Registers
+import sys
+#TODO: jump opcodes are currently breaking my register classes. Need some other way to handle them.
+
 
 class Cpu(object):
     """
@@ -7,30 +10,12 @@ class Cpu(object):
     """
 
     def __init__(self, mmu):
-        self.pc = Register(0x100)  # Program Counter
-        self.previous_pc = 0
-        self.sp = Register(0xfffe)  # Stack Pointer
-        self.mmu = mmu  # Memory Management Unit
+        self.registers = Registers()
+        self.mmu = mmu
         self.opcode = 0
         self.interrupts = False
         self.clock_cycles = 0
 
-        # Registers
-        self.a = Register(0x1)
-        self.b = Register(0)
-        self.c = Register(0x13)
-        self.d = Register(0)
-        self.e = Register(0xd8)
-        self.h = Register(0x01)
-        self.l = Register(0x4d)
-
-        # we keep the flags separate instead of in the f register. No need to complicate this process.
-        self.zero_flag = 1     # 0x80
-        self.sub_flag = 0      # 0x40
-        self.hc_flag = 1       # 0x20
-        self.carry_flag = 1    # 0x10
-
-        # Opcode map, some opcodes not supported in GB architecture
         self.opcodes = {
             0x00: self._op_00,
             0x01: self._op_01,
@@ -289,7 +274,7 @@ class Cpu(object):
             0xfe: self._op_fe,
             0xff: self._op_ff,
         }
-        self.ext_opcodes = {
+        self.registers.ext_opcodes = {
             0x00: self._op_cb_00,
             0x01: self._op_cb_01,
             0x02: self._op_cb_02,
@@ -551,37 +536,16 @@ class Cpu(object):
         """
         Single cpu cycle. Reads opcode at program counter in memory. Executes that opcode.
         """
-        self.previous_pc = self.pc
-        self.opcode = self.mmu.read_byte(self.pc)
-
-        '''
-        print('PC:\t' + self.pc)
-        print('SP:\t' + self.sp + '\n')
-        print('A: \t' + self.a)
-        print('B: \t' + self.b)
-        print('C: \t' + self.c)
-        print('D: \t' + self.d)
-        print('E: \t' + self.e)
-        print('H: \t' + self.h)
-        print('L: \t' + self.l + '\n')
-        print('Flags:')
-        print('\tZ: ' + str(self.zero_flag) + '\tN: ' + str(self.sub_flag) + '\tH: ' + str(self.hc_flag) + '\tC: ' + str(self.carry_flag))
-        print('\n')
-        '''
-        self.pc += 1
+        self.opcode = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
         try:
             cycles = self.opcodes[self.opcode]()
-        except KeyError:
-            print(self.pc)
+            return cycles
+        except KeyError as msg:
+            print(self.registers.pc)
             print(self.opcode)
-
-        return cycles
-
-    def registers(self):
-        return [self.a, self.b, self.c, self.d, self.e, self.h, self.l]
-
-    def flags(self):
-        return [self.zero_flag, self.sub_flag, self.hc_flag, self.carry_flag]
+            print("Error: {0}".format(msg))
+            sys.exit(1)
 
     def _rst(self, pc):
         """
@@ -589,10 +553,11 @@ class Cpu(object):
         :param pc:
         :return:
         """
-        self.sp = (self.sp - 2) & 0xffff
-        call_addr = self.mmu.read_byte(self.pc)
-        call_addr += self.mmu.read_byte(self.pc + 1) << 8
-        self.pc = pc
+        self.registers.sp -= 2
+        # TODO: Something seems off here..., don't know why I'm reading instead of writing
+        call_addr = self.mmu.read_byte(self.registers.pc)
+        call_addr += self.mmu.read_byte(self.registers.pc + 1) << 8
+        self.registers.jump(pc)
 
     def _cp(self, value):
         """
@@ -607,19 +572,19 @@ class Cpu(object):
         :param value:
         :return:
         """
-        self.sub_flag = 1
-        if self.a == value:
-            self.zero_flag = 1
+        self.registers.sub_flag = 1
+        if self.registers.a == value:
+            self.registers.zero_flag = 1
         else:
-            self.zero_flag = 0
-        if self.a < value:
-            self.carry_flag = 1
+            self.registers.zero_flag = 0
+        if self.registers.a < value:
+            self.registers.carry_flag = 1
         else:
-            self.carry_flag = 0
-        if (self.a & 0xf) < (value & 0xf):
-            self.hc_flag = 1
+            self.registers.carry_flag = 0
+        if (self.registers.a & 0xf) < (value & 0xf):
+            self.registers.hc_flag = 1
         else:
-            self.hc_flag = 0
+            self.registers.hc_flag = 0
 
     def _inc(self, register):
         """
@@ -634,11 +599,11 @@ class Cpu(object):
         :param register:
         :return:
         """
-        temp = getattr(self, register) + 1
-        setattr(self, register, temp)
-        self.zero_flag = 1 if temp == 0 else 0
-        self.sub_flag = 0
-        self.hc_flag = 1 if (temp & 0xf) == 0 else 0
+        temp = getattr(self.registers, register) + 1
+        setattr(self.registers, register, temp)
+        self.registers.zero_flag = 1 if temp == 0 else 0
+        self.registers.sub_flag = 0
+        self.registers.hc_flag = 1 if (temp & 0xf) == 0 else 0
 
     def _dec(self, register):
         """
@@ -653,11 +618,11 @@ class Cpu(object):
         :param register:
         :return:
         """
-        temp = getattr(self, register) - 1
-        setattr(self, register, temp)
-        self.zero_flag = 1 if temp == 0 else 0
-        self.sub_flag = 1
-        self.hc_flag = 1 if (temp & 0xf) > 0xf else 0  # TODO: May have to modify, should be now borrow but is carry
+        temp = getattr(self.registers, register) - 1
+        setattr(self.registers, register, temp)
+        self.registers.zero_flag = 1 if temp == 0 else 0
+        self.registers.sub_flag = 1
+        self.registers.hc_flag = 1 if (temp & 0xf) > 0xf else 0  # TODO: May have to modify, should be now borrow but is carry
 
     def _add(self, value):
         """
@@ -672,12 +637,11 @@ class Cpu(object):
         :param value:
         :return:
         """
-        self.hc_flag = 1 if ((self.a & 0xf) + (value & 0xf)) > 0xf else 0
-        self.a += value
-        self.carry_flag = 1 if self.a > 0xff else 0
-        self.a &= 0xff
-        self.zero_flag = 1 if self.a == 0 else 0
-        self.sub_flag = 0
+        self.registers.hc_flag = 1 if ((self.registers.a & 0xf) + (value & 0xf)) > 0xf else 0
+        self.registers.a += value
+        self.registers.carry_flag = 1 if self.registers.a > 0xff else 0
+        self.registers.zero_flag = 1 if self.registers.a == 0 else 0
+        self.registers.sub_flag = 0
 
     def _sub(self, value):
         """
@@ -692,12 +656,11 @@ class Cpu(object):
         :param value:
         :return:
         """
-        self.hc_flag = 1 if (self.a & 0xf) < (value & 0xf) else 0
-        self.carry_flag = 1 if self.a < value else 0
-        self.a -= value
-        self.a &= 0xff
-        self.zero_flag = 1 if self.a == 0 else 0
-        self.sub_flag = 1
+        self.registers.hc_flag = 1 if (self.registers.a & 0xf) < (value & 0xf) else 0
+        self.registers.carry_flag = 1 if self.registers.a < value else 0
+        self.registers.a -= value
+        self.registers.zero_flag = 1 if self.registers.a == 0 else 0
+        self.registers.sub_flag = 1
 
     def _and(self, value):
         """
@@ -712,12 +675,11 @@ class Cpu(object):
         :param value:
         :return:
         """
-        self.a &= value
-        self.a &= 0xff
-        self.zero_flag = 1 if self.a == 0 else 0
-        self.hc_flag = 1
-        self.sub_flag = 0
-        self.carry_flag = 0
+        self.registers.a &= value
+        self.registers.zero_flag = 1 if self.registers.a == 0 else 0
+        self.registers.hc_flag = 1
+        self.registers.sub_flag = 0
+        self.registers.carry_flag = 0
 
     def _or(self, value):
         """
@@ -726,12 +688,11 @@ class Cpu(object):
         :param value:
         :return:
         """
-        self.a |= value
-        self.a &= 0xff
-        self.zero_flag = 1 if self.a == 0 else 0
-        self.carry_flag = 0
-        self.hc_flag = 0
-        self.sub_flag = 0
+        self.registers.a |= value
+        self.registers.zero_flag = 1 if self.registers.a == 0 else 0
+        self.registers.carry_flag = 0
+        self.registers.hc_flag = 0
+        self.registers.sub_flag = 0
 
     def _xor(self, value):
         """
@@ -740,12 +701,11 @@ class Cpu(object):
         :param value:
         :return:
         """
-        self.a ^= value
-        self.a &= 0xff
-        self.zero_flag = 1 if self.a == 0 else 0
-        self.carry_flag = 0
-        self.hc_flag = 0
-        self.sub_flag = 0
+        self.registers.a ^= value
+        self.registers.zero_flag = 1 if self.registers.a == 0 else 0
+        self.registers.carry_flag = 0
+        self.registers.hc_flag = 0
+        self.registers.sub_flag = 0
 
     def _op_00(self):
         """
@@ -766,9 +726,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.c = self.mmu.read_byte(self.pc)
-        self.b = self.mmu.read_byte(self.pc + 1)
-        self.pc += 2
+        self.registers.c = self.mmu.read_byte(self.registers.pc)
+        self.registers.b = self.mmu.read_byte(self.registers.pc + 1)
+        self.registers.pc += 2
         return 12
 
     def _op_02(self):
@@ -780,7 +740,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.b << 8) + self.c, self.a)
+        self.mmu.write_byte((self.registers.b << 8) + self.registers.c, self.registers.a)
         return 8
 
     def _op_03(self):
@@ -795,9 +755,9 @@ class Cpu(object):
         C - Not affected
         :return:
         """
-        self.c = (self.c + 1) & 0xff
-        if self.c == 0:
-            self.b = (self.b + 1) & 0xff
+        self.registers.c += 1
+        if self.registers.c == 0:
+            self.registers.b += 1
         return 8
 
     def _op_04(self):
@@ -839,8 +799,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.b = self.mmu.read_byte(self.pc)
-        self.pc += 1
+        self.registers.b = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
         return 8
 
     def _op_07(self):
@@ -855,11 +815,11 @@ class Cpu(object):
         C - Contains old bit 7 data
         :return:
         """
-        self.carry_flag = (self.a & 0x80) // 0x80
-        self.a = ((self.a << 1) & 0xff) | self.carry_flag
-        self.zero_flag = 1 if self.a == 0 else 0
-        self.sub_flag = 0
-        self.hc_flag = 0
+        self.registers.carry_flag = (self.registers.a & 0x80) // 0x80
+        self.registers.a = ((self.registers.a << 1) | self.registers.carry_flag)
+        self.registers.zero_flag = 1 if self.registers.a == 0 else 0
+        self.registers.sub_flag = 0
+        self.registers.hc_flag = 0
         return 4
 
     def _op_08(self):
@@ -871,7 +831,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_word(self.pc, self.sp)
+        self.mmu.write_word(self.registers.pc, self.registers.sp)
         return 20
 
     def _op_09(self):
@@ -886,15 +846,15 @@ class Cpu(object):
         C - Set if carry from bit 15
         :return:
         """
-        hl = (self.h << 8) + self.l
-        bc = (self.b << 8) + self.c
+        hl = (self.registers.h << 8) + self.registers.l
+        bc = (self.registers.b << 8) + self.registers.c
         if hl + bc > 0xffff:
-            self.carry_flag |= 1
+            self.registers.carry_flag |= 1
         if (hl & 0x0fff) + (bc & 0x0fff) > 0x0fff:
-            self.hc_flag |= 1
+            self.registers.hc_flag |= 1
         hl = (hl + bc) & 0xffff
-        self.h = hl >> 8
-        self.l = hl & 0xff
+        self.registers.h = hl >> 8
+        self.registers.l = hl & 0xff
         return 8
 
     def _op_0a(self):
@@ -906,7 +866,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.mmu.read_byte((self.b << 8) | self.c)
+        self.registers.a = self.mmu.read_byte((self.registers.b << 8) | self.registers.c)
         return 8
 
     def _op_0b(self):
@@ -918,9 +878,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.c = (self.c - 1) & 0xff
-        if self.c == 0xff:
-            self.b = (self.b - 1) & 0xff
+        self.registers.c -= 1
+        if self.registers.c == 0xff:
+            self.registers.b -= 1
         return 8
 
     def _op_0c(self):
@@ -962,8 +922,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.c = self.mmu.read_byte(self.pc)
-        self.pc += 1
+        self.registers.c = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
         return 8
 
     def _op_0f(self):
@@ -978,11 +938,11 @@ class Cpu(object):
         C - contains old bit 0 data
         :return:
         """
-        self.carry_flag = self.a & 0x1
-        self.a = ((self.a >> 1) & 0xff) | (self.carry_flag * 0x80)
-        self.sub_flag = 0
-        self.hc_flag = 0
-        self.zero_flag = 1 if self.a == 0 else 0
+        self.registers.carry_flag = self.registers.a & 0x1
+        self.registers.a = (self.registers.a >> 1) | (self.registers.carry_flag * 0x80)
+        self.registers.sub_flag = 0
+        self.registers.hc_flag = 0
+        self.registers.zero_flag = 1 if self.registers.a == 0 else 0
         return 4
 
     def _op_10(self):
@@ -1006,9 +966,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.e = self.mmu.read_byte(self.pc)
-        self.d = self.mmu.read_byte(self.pc + 1)
-        self.pc += 2
+        self.registers.e = self.mmu.read_byte(self.registers.pc)
+        self.registers.d = self.mmu.read_byte(self.registers.pc + 1)
+        self.registers.pc += 2
         return 12
 
     def _op_12(self):
@@ -1020,7 +980,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.d << 8) + self.e, self.a)
+        self.mmu.write_byte((self.registers.d << 8) + self.registers.e, self.registers.a)
         return 8
 
     def _op_13(self):
@@ -1035,9 +995,9 @@ class Cpu(object):
         C - Not affected
         :return:
         """
-        self.e = (self.e + 1) & 0xff
-        if self.e == 0:
-            self.d = (self.d + 1) & 0xff
+        self.registers.e += 1
+        if self.registers.e == 0:
+            self.registers.d += 1
         return 8
 
     def _op_14(self):
@@ -1079,8 +1039,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.d = self.mmu.read_byte(self.pc)
-        self.pc += 1
+        self.registers.d = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
         return 8
 
     def _op_17(self):
@@ -1092,12 +1052,12 @@ class Cpu(object):
         None
         :return:
         """
-        high_bit = (self.a & 0x80) << 7
-        self.a = ((self.a << 1) & 0xff) | self.carry_flag
-        self.carry_flag = high_bit
-        self.zero_flag = 1 if self.a == 0 else 0
-        self.sub_flag = 0
-        self.hc_flag = 0
+        high_bit = (self.registers.a & 0x80) << 7
+        self.registers.a = ((self.registers.a << 1) & 0xff) | self.registers.carry_flag
+        self.registers.carry_flag = high_bit
+        self.registers.zero_flag = 1 if self.registers.a == 0 else 0
+        self.registers.sub_flag = 0
+        self.registers.hc_flag = 0
         return 4
 
     def _op_18(self):
@@ -1109,11 +1069,11 @@ class Cpu(object):
         None
         :return:
         """
-        delta = self.mmu.read_byte(self.pc)
-        self.pc += 1
+        delta = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
         if delta > 0x7f:
             delta -= 0x100
-        self.pc += delta
+        self.registers.pc += delta
         return 12
 
     def _op_19(self):
@@ -1128,15 +1088,15 @@ class Cpu(object):
         C - Set if carry from bit 15
         :return:
         """
-        hl = (self.h << 8) + self.l
-        de = (self.d << 8) + self.e
+        hl = (self.registers.h << 8) + self.registers.l
+        de = (self.registers.d << 8) + self.registers.e
         if hl + de > 0xffff:
-            self.carry_flag |= 1
+            self.registers.carry_flag |= 1
         if (hl & 0x0fff) + (de & 0x0fff) > 0x0fff:
-            self.hc_flag |= 1
+            self.registers.hc_flag |= 1
         hl = (hl + de) & 0xffff
-        self.h = hl >> 8
-        self.l = hl & 0xff
+        self.registers.h = hl >> 8
+        self.registers.l = hl & 0xff
         return 8
 
     def _op_1a(self):
@@ -1147,7 +1107,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.mmu.read_byte((self.d << 8) | self.e)
+        self.registers.a = self.mmu.read_byte((self.registers.d << 8) | self.registers.e)
         return 8
 
     def _op_1b(self):
@@ -1159,9 +1119,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.e = (self.e - 1) & 0xff
-        if self.e == 0xff:
-            self.d = (self.d - 1) & 0xff
+        self.registers.e = (self.registers.e - 1) & 0xff
+        if self.registers.e == 0xff:
+            self.registers.d = (self.registers.d - 1) & 0xff
         return 8
 
     def _op_1c(self):
@@ -1203,8 +1163,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.e = self.mmu.read_byte(self.pc)
-        self.pc += 1
+        self.registers.e = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
         return 8
 
     def _op_1f(self):
@@ -1219,12 +1179,12 @@ class Cpu(object):
         C - contains old bit 0 data
         :return:
         """
-        low_bit = self.a & 0x1
-        self.a = ((self.a >> 1) & 0xff) | (self.carry_flag * 0x80)
-        self.carry_flag = low_bit
-        self.zero_flag = 1 if self.a == 0 else 0
-        self.sub_flag = 0
-        self.hc_flag = 0
+        low_bit = self.registers.a & 0x1
+        self.registers.a = ((self.registers.a >> 1) & 0xff) | (self.registers.carry_flag * 0x80)
+        self.registers.carry_flag = low_bit
+        self.registers.zero_flag = 1 if self.registers.a == 0 else 0
+        self.registers.sub_flag = 0
+        self.registers.hc_flag = 0
         return 4
 
     def _op_20(self):
@@ -1236,10 +1196,10 @@ class Cpu(object):
         None
         :return:
         """
-        if self.zero_flag == 0:
+        if self.registers.zero_flag == 0:
             return self._op_18()
         else:
-            self.pc += 1
+            self.registers.pc += 1
             return 8
 
     def _op_21(self):
@@ -1251,9 +1211,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.l = self.mmu.read_byte(self.pc)
-        self.h = self.mmu.read_byte(self.pc + 1)
-        self.pc += 2
+        self.registers.l = self.mmu.read_byte(self.registers.pc)
+        self.registers.h = self.mmu.read_byte(self.registers.pc + 1)
+        self.registers.pc += 2
         return 12
 
     def _op_22(self):
@@ -1265,10 +1225,10 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.a)
-        self.l = (self.l + 1) & 0xff
-        if self.l == 0:
-            self.h = (self.h + 1) & 0xff
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.a)
+        self.registers.l = (self.registers.l + 1) & 0xff
+        if self.registers.l == 0:
+            self.registers.h = (self.registers.h + 1) & 0xff
         return 8
 
     def _op_23(self):
@@ -1283,9 +1243,9 @@ class Cpu(object):
         C - Not affected
         :return:
         """
-        self.l = (self.l + 1) & 0xff
-        if self.l == 0:
-            self.h = (self.h + 1) & 0xff
+        self.registers.l = (self.registers.l + 1) & 0xff
+        if self.registers.l == 0:
+            self.registers.h = (self.registers.h + 1) & 0xff
         return 8
 
     def _op_24(self):
@@ -1327,8 +1287,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.h = self.mmu.read_byte(self.pc)
-        self.pc += 1
+        self.registers.h = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
         return 8
 
     def _op_27(self):
@@ -1345,22 +1305,22 @@ class Cpu(object):
         C - set if register carries over 0xff
         :return:
         """
-        if not self.sub_flag:
-            if self.hc_flag or (self.a & 0xf) > 0x9:
-                self.a += 0x06
-            if self.carry_flag or self.a > 0x9f:
-                self.a += 0x60
+        if not self.registers.sub_flag:
+            if self.registers.hc_flag or (self.registers.a & 0xf) > 0x9:
+                self.registers.a += 0x06
+            if self.registers.carry_flag or self.registers.a > 0x9f:
+                self.registers.a += 0x60
         else:
-            if self.hc_flag:
-                self.a = (self.a - 0x06) & 0xff
-            if self.carry_flag:
-                self.a -= 0x60
-        if self.a == 0:
-            self.zero_flag = 1
-        self.hc_flag = 0
-        if (self.a & 0x100) == 0x100:
-            self.carry_flag = 1
-        self.a &= 0xff
+            if self.registers.hc_flag:
+                self.registers.a = (self.registers.a - 0x06) & 0xff
+            if self.registers.carry_flag:
+                self.registers.a -= 0x60
+        if self.registers.a == 0:
+            self.registers.zero_flag = 1
+        self.registers.hc_flag = 0
+        if (self.registers.a & 0x100) == 0x100:
+            self.registers.carry_flag = 1
+        self.registers.a &= 0xff
         return 4
 
     def _op_28(self):
@@ -1372,10 +1332,10 @@ class Cpu(object):
         None
         :return:
         """
-        if self.zero_flag:
+        if self.registers.zero_flag:
             return self._op_18()
         else:
-            self.pc += 1
+            self.registers.pc += 1
             return 8
 
     def _op_29(self):
@@ -1390,7 +1350,7 @@ class Cpu(object):
         C - Set if carry from bit 15
         :return:
         """
-        data = (self.h << 8) | self.l
+        data = (self.registers.h << 8) | self.registers.l
         return 8
 
     def _op_2a(self):
@@ -1402,10 +1362,10 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.mmu.read_byte((self.h << 8) + self.l)
-        self.l = (self.l + 1) & 0xff
-        if self.l == 0:
-            self.h = (self.h + 1) & 0xff
+        self.registers.a = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
+        self.registers.l = (self.registers.l + 1) & 0xff
+        if self.registers.l == 0:
+            self.registers.h = (self.registers.h + 1) & 0xff
         return 8
 
     def _op_2b(self):
@@ -1417,9 +1377,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.l = (self.l - 1) & 255
-        if self.l == 255:
-            self.h = (self.h - 1) & 255
+        self.registers.l = (self.registers.l - 1) & 255
+        if self.registers.l == 255:
+            self.registers.h = (self.registers.h - 1) & 255
         return 8
 
     def _op_2c(self):
@@ -1461,8 +1421,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.l = self.mmu.read_byte(self.pc)
-        self.pc += 1
+        self.registers.l = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
         return 8
 
     def _op_2f(self):
@@ -1477,9 +1437,9 @@ class Cpu(object):
         C - Not affected
         :return:
         """
-        self.a ^= 0xff
-        self.sub_flag = 1
-        self.hc_flag = 1
+        self.registers.a ^= 0xff
+        self.registers.sub_flag = 1
+        self.registers.hc_flag = 1
         return 4
 
     def _op_30(self):
@@ -1491,10 +1451,10 @@ class Cpu(object):
         None
         :return:
         """
-        if self.carry_flag == 0:
+        if self.registers.carry_flag == 0:
             return self._op_18()
         else:
-            self.pc += 1
+            self.registers.pc += 1
             return 8
 
     def _op_31(self):
@@ -1506,8 +1466,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.sp = self.mmu.read_word(self.pc)
-        self.pc += 2
+        self.registers.sp = self.mmu.read_word(self.registers.pc)
+        self.registers.pc += 2
         return 12
 
     def _op_32(self):
@@ -1519,10 +1479,10 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.a)
-        self.l = (self.l - 1) & 0xff
-        if self.l == 255:
-            self.h = (self.h - 1) & 0xff
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.a)
+        self.registers.l = (self.registers.l - 1) & 0xff
+        if self.registers.l == 255:
+            self.registers.h = (self.registers.h - 1) & 0xff
         return 8
 
     def _op_33(self):
@@ -1534,7 +1494,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.sp = (self.sp + 1) & 0xffff
+        self.registers.sp = (self.registers.sp + 1) & 0xffff
         return 8
 
     def _op_34(self):
@@ -1549,18 +1509,18 @@ class Cpu(object):
         C - Not affected
         :return:
         """
-        addr = (self.h << 8) + self.l
+        addr = (self.registers.h << 8) + self.registers.l
         value = (self.mmu.read_byte(addr) + 1) & 0xff
         self.mmu.write_byte(addr, value)
-        self.sub_flag = 0
+        self.registers.sub_flag = 0
         if value == 0:
-            self.zero_flag = 1
+            self.registers.zero_flag = 1
         else:
-            self.zero_flag = 0
+            self.registers.zero_flag = 0
         if (value & 0xf) == 0:
-            self.hc_flag = 1
+            self.registers.hc_flag = 1
         else:
-            self.hc_flag = 0
+            self.registers.hc_flag = 0
         return 12
 
     def _op_35(self):
@@ -1575,12 +1535,12 @@ class Cpu(object):
         C - Not affected
         :return:
         """
-        temp = self.mmu.read_byte((self.h << 8) + self.l)
+        temp = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         temp = (temp - 1) & 0xff
-        self.mmu.write_byte((self.h << 8) + self.l, temp)
-        self.zero_flag = 1 if temp == 0 else 0
-        self.sub_flag = 1
-        self.hc_flag = 1 if (temp & 0xf) > 0xf else 0
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, temp)
+        self.registers.zero_flag = 1 if temp == 0 else 0
+        self.registers.sub_flag = 1
+        self.registers.hc_flag = 1 if (temp & 0xf) > 0xf else 0
         return 12
 
     def _op_36(self):
@@ -1592,8 +1552,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.mmu.read_byte(self.pc))
-        self.pc += 1
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.mmu.read_byte(self.registers.pc))
+        self.registers.pc += 1
         return 12
 
     def _op_37(self):
@@ -1608,9 +1568,9 @@ class Cpu(object):
         C - set to 1
         :return:
         """
-        self.carry_flag = 1
-        self.hc_flag = 0
-        self.sub_flag = 0
+        self.registers.carry_flag = 1
+        self.registers.hc_flag = 0
+        self.registers.sub_flag = 0
         return 4
 
     def _op_38(self):
@@ -1622,10 +1582,10 @@ class Cpu(object):
         None
         :return:
         """
-        if self.carry_flag:
+        if self.registers.carry_flag:
             return self._op_18()
         else:
-            self.pc += 1
+            self.registers.pc += 1
             return 8
 
     def _op_39(self):
@@ -1640,14 +1600,14 @@ class Cpu(object):
         C - Set if carry from bit 15
         :return:
         """
-        hl = (self.h << 8) + self.l
-        if hl + self.sp > 0xffff:
-            self.carry_flag |= 1
-        if (hl & 0x0fff) + (self.sp & 0x0fff) > 0x0fff:
-            self.hc_flag |= 1
-        hl = (hl + self.sp) & 0xffff
-        self.h = hl >> 8
-        self.l = hl & 0xff
+        hl = (self.registers.h << 8) + self.registers.l
+        if hl + self.registers.sp > 0xffff:
+            self.registers.carry_flag |= 1
+        if (hl & 0x0fff) + (self.registers.sp & 0x0fff) > 0x0fff:
+            self.registers.hc_flag |= 1
+        hl = (hl + self.registers.sp) & 0xffff
+        self.registers.h = hl >> 8
+        self.registers.l = hl & 0xff
         return 8
 
     def _op_3a(self):
@@ -1659,10 +1619,10 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.mmu.read_byte((self.h << 8) + self.l)
-        temp = self.mmu.read_byte((self.h << 8) + self.l)
+        self.registers.a = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
+        temp = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         temp = (temp - 1) & 0xff
-        self.mmu.write_byte((self.h << 8) + self.l, temp)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, temp)
         return 8
 
     def _op_3b(self):
@@ -1674,7 +1634,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.sp = (self.sp - 1) & 0xffff
+        self.registers.sp = (self.registers.sp - 1) & 0xffff
         return 8
 
     def _op_3c(self):
@@ -1716,8 +1676,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.mmu.read_byte(self.pc)
-        self.pc += 1
+        self.registers.a = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
         return 8
 
     def _op_3f(self):
@@ -1733,9 +1693,9 @@ class Cpu(object):
         C - complemented
         :return:
         """
-        self.sub_flag = 0
-        self.hc_flag = 0
-        self.carry_flag = 1 if self.carry_flag == 0 else 0
+        self.registers.sub_flag = 0
+        self.registers.hc_flag = 0
+        self.registers.carry_flag = 1 if self.registers.carry_flag == 0 else 0
         return 4
 
     def _op_40(self):
@@ -1758,7 +1718,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.b = self.c
+        self.registers.b = self.registers.c
         return 4
 
     def _op_42(self):
@@ -1770,7 +1730,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.b = self.d
+        self.registers.b = self.registers.d
         return 4
 
     def _op_43(self):
@@ -1782,7 +1742,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.b = self.e
+        self.registers.b = self.registers.e
         return 4
 
     def _op_44(self):
@@ -1794,7 +1754,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.b = self.h
+        self.registers.b = self.registers.h
         return 4
 
     def _op_45(self):
@@ -1806,7 +1766,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.b = self.l
+        self.registers.b = self.registers.l
         return 4
 
     def _op_46(self):
@@ -1818,7 +1778,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.b = self.mmu.read_byte((self.h << 8) + self.l)
+        self.registers.b = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         return 8
 
     def _op_47(self):
@@ -1830,7 +1790,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.b = self.a
+        self.registers.b = self.registers.a
         return 4
 
     def _op_48(self):
@@ -1842,7 +1802,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.c = self.b
+        self.registers.c = self.registers.b
         return 4
 
     def _op_49(self):
@@ -1865,7 +1825,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.c = self.d
+        self.registers.c = self.registers.d
         return 4
 
     def _op_4b(self):
@@ -1877,7 +1837,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.c = self.e
+        self.registers.c = self.registers.e
         return 4
 
     def _op_4c(self):
@@ -1889,7 +1849,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.c = self.h
+        self.registers.c = self.registers.h
         return 4
 
     def _op_4d(self):
@@ -1901,7 +1861,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.c = self.l
+        self.registers.c = self.registers.l
         return 4
 
     def _op_4e(self):
@@ -1913,7 +1873,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.c = self.mmu.read_byte((self.h << 8) + self.l)
+        self.registers.c = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         return 4
 
     def _op_4f(self):
@@ -1925,7 +1885,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.c = self.a
+        self.registers.c = self.registers.a
         return 4
 
     def _op_50(self):
@@ -1937,7 +1897,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.d = self.b
+        self.registers.d = self.registers.b
         return 4
 
     def _op_51(self):
@@ -1949,7 +1909,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.d = self.c
+        self.registers.d = self.registers.c
         return 4
 
     def _op_52(self):
@@ -1972,7 +1932,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.d = self.e
+        self.registers.d = self.registers.e
         return 4
 
     def _op_54(self):
@@ -1984,7 +1944,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.d = self.h
+        self.registers.d = self.registers.h
         return 4
 
     def _op_55(self):
@@ -1996,7 +1956,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.d = self.l
+        self.registers.d = self.registers.l
         return 4
 
     def _op_56(self):
@@ -2008,7 +1968,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.d = self.mmu.read_byte(self.h << 8 + self.l)
+        self.registers.d = self.mmu.read_byte(self.registers.h << 8 + self.registers.l)
         return 8
 
     def _op_57(self):
@@ -2020,7 +1980,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.d = self.a
+        self.registers.d = self.registers.a
         return 4
 
     def _op_58(self):
@@ -2032,7 +1992,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.e = self.b
+        self.registers.e = self.registers.b
         return 4
 
     def _op_59(self):
@@ -2044,7 +2004,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.e = self.c
+        self.registers.e = self.registers.c
         return 4
 
     def _op_5a(self):
@@ -2056,7 +2016,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.e = self.d
+        self.registers.e = self.registers.d
         return 4
 
     def _op_5b(self):
@@ -2079,7 +2039,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.e = self.h
+        self.registers.e = self.registers.h
         return 4
 
     def _op_5d(self):
@@ -2091,7 +2051,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.e = self.l
+        self.registers.e = self.registers.l
         return 4
 
     def _op_5e(self):
@@ -2103,7 +2063,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.e = self.mmu.read_byte(self.h << 8 + self.l)
+        self.registers.e = self.mmu.read_byte(self.registers.h << 8 + self.registers.l)
         return 8
 
     def _op_5f(self):
@@ -2115,7 +2075,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.e = self.a
+        self.registers.e = self.registers.a
         return 4
 
     def _op_60(self):
@@ -2127,7 +2087,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.h = self.b
+        self.registers.h = self.registers.b
         return 4
 
     def _op_61(self):
@@ -2139,7 +2099,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.h = self.c
+        self.registers.h = self.registers.c
         return 4
 
     def _op_62(self):
@@ -2151,7 +2111,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.h = self.d
+        self.registers.h = self.registers.d
         return 4
 
     def _op_63(self):
@@ -2163,7 +2123,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.h = self.e
+        self.registers.h = self.registers.e
         return 4
 
     def _op_64(self):
@@ -2186,7 +2146,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.h = self.l
+        self.registers.h = self.registers.l
         return 4
 
     def _op_66(self):
@@ -2198,7 +2158,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.h = self.mmu.read_byte(self.h << 8 + self.l)
+        self.registers.h = self.mmu.read_byte(self.registers.h << 8 + self.registers.l)
         return 8
 
     def _op_67(self):
@@ -2210,7 +2170,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.h = self.a
+        self.registers.h = self.registers.a
         return 4
 
     def _op_68(self):
@@ -2222,7 +2182,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.l = self.b
+        self.registers.l = self.registers.b
         return 4
 
     def _op_69(self):
@@ -2234,7 +2194,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.l = self.c
+        self.registers.l = self.registers.c
         return 4
 
     def _op_6a(self):
@@ -2246,7 +2206,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.l = self.d
+        self.registers.l = self.registers.d
         return 4
 
     def _op_6b(self):
@@ -2258,7 +2218,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.l = self.e
+        self.registers.l = self.registers.e
         return 4
 
     def _op_6c(self):
@@ -2270,7 +2230,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.l = self.h
+        self.registers.l = self.registers.h
         return 4
 
     def _op_6d(self):
@@ -2293,7 +2253,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.l = self.mmu.read_byte((self.h << 8) + self.l)
+        self.registers.l = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         return 8
 
     def _op_6f(self):
@@ -2305,7 +2265,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.l = self.a
+        self.registers.l = self.registers.a
         return 4
 
     def _op_70(self):
@@ -2317,7 +2277,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.b)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.b)
         return 8
 
     def _op_71(self):
@@ -2329,7 +2289,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.c)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.c)
         return 8
 
     def _op_72(self):
@@ -2341,7 +2301,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.d)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.d)
         return 8
 
     def _op_73(self):
@@ -2353,7 +2313,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.e)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.e)
         return 8
 
     def _op_74(self):
@@ -2365,7 +2325,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.h)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.h)
         return 8
 
     def _op_75(self):
@@ -2377,7 +2337,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.l)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.l)
         return 8
 
     def _op_76(self):
@@ -2402,7 +2362,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((self.h << 8) + self.l, self.a)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.a)
         return 8
 
     def _op_78(self):
@@ -2414,7 +2374,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.b
+        self.registers.a = self.registers.b
         return 4
 
     def _op_79(self):
@@ -2426,7 +2386,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.c
+        self.registers.a = self.registers.c
         return 4
 
     def _op_7a(self):
@@ -2438,7 +2398,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.d
+        self.registers.a = self.registers.d
         return 4
 
     def _op_7b(self):
@@ -2450,7 +2410,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.e
+        self.registers.a = self.registers.e
         return 4
 
     def _op_7c(self):
@@ -2462,7 +2422,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.h
+        self.registers.a = self.registers.h
         return 4
 
     def _op_7d(self):
@@ -2474,7 +2434,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.l
+        self.registers.a = self.registers.l
         return 4
 
     def _op_7e(self):
@@ -2486,7 +2446,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.mmu.read_byte((self.h << 8) + self.l)
+        self.registers.a = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         return 8
 
     def _op_7f(self):
@@ -2512,7 +2472,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.b)
+        self._add(self.registers.b)
         return 4
 
     def _op_81(self):
@@ -2527,7 +2487,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.c)
+        self._add(self.registers.c)
         return 4
 
     def _op_82(self):
@@ -2542,7 +2502,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.d)
+        self._add(self.registers.d)
         return 4
 
     def _op_83(self):
@@ -2557,7 +2517,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.e)
+        self._add(self.registers.e)
         return 4
 
     def _op_84(self):
@@ -2572,7 +2532,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.h)
+        self._add(self.registers.h)
         return 4
 
     def _op_85(self):
@@ -2587,7 +2547,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.l)
+        self._add(self.registers.l)
         return 4
 
     def _op_86(self):
@@ -2602,7 +2562,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.mmu.read_byte((self.h << 8) + self.l))
+        self._add(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
 
     def _op_87(self):
@@ -2617,7 +2577,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.a)
+        self._add(self.registers.a)
         return 4
 
     def _op_88(self):
@@ -2632,7 +2592,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.b + self.carry_flag)
+        self._add(self.registers.b + self.registers.carry_flag)
         return 4
 
     def _op_89(self):
@@ -2647,7 +2607,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.c + self.carry_flag)
+        self._add(self.registers.c + self.registers.carry_flag)
         return 4
 
     def _op_8a(self):
@@ -2662,7 +2622,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.d + self.carry_flag)
+        self._add(self.registers.d + self.registers.carry_flag)
         return 4
 
     def _op_8b(self):
@@ -2677,7 +2637,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.e + self.carry_flag)
+        self._add(self.registers.e + self.registers.carry_flag)
         return 4
 
     def _op_8c(self):
@@ -2692,7 +2652,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.h + self.carry_flag)
+        self._add(self.registers.h + self.registers.carry_flag)
         return 4
 
     def _op_8d(self):
@@ -2707,7 +2667,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.l + self.carry_flag)
+        self._add(self.registers.l + self.registers.carry_flag)
         return 4
 
     def _op_8e(self):
@@ -2722,7 +2682,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.mmu.read_byte((self.h << 8) + self.l) + self.carry_flag)
+        self._add(self.mmu.read_byte((self.registers.h << 8) + self.registers.l) + self.registers.carry_flag)
         return 8
 
     def _op_8f(self):
@@ -2737,7 +2697,7 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.a + self.carry_flag)
+        self._add(self.registers.a + self.registers.carry_flag)
         return 4
 
     def _op_90(self):
@@ -2752,7 +2712,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.b)
+        self._sub(self.registers.b)
         return 4
 
     def _op_91(self):
@@ -2767,7 +2727,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.c)
+        self._sub(self.registers.c)
         return 4
 
     def _op_92(self):
@@ -2782,7 +2742,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.d)
+        self._sub(self.registers.d)
         return 4
 
     def _op_93(self):
@@ -2797,7 +2757,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.e)
+        self._sub(self.registers.e)
         return 4
 
     def _op_94(self):
@@ -2812,7 +2772,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.h)
+        self._sub(self.registers.h)
         return 4
 
     def _op_95(self):
@@ -2827,7 +2787,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.l)
+        self._sub(self.registers.l)
         return 4
 
     def _op_96(self):
@@ -2842,7 +2802,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.mmu.read_byte((self.h << 8) + self.l))
+        self._sub(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
 
     def _op_97(self):
@@ -2858,7 +2818,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.a)
+        self._sub(self.registers.a)
         return 4
 
     def _op_98(self):
@@ -2874,7 +2834,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.b + self.carry_flag)
+        self._sub(self.registers.b + self.registers.carry_flag)
         return 4
 
     def _op_99(self):
@@ -2890,7 +2850,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.c + self.carry_flag)
+        self._sub(self.registers.c + self.registers.carry_flag)
         return 4
 
     def _op_9a(self):
@@ -2906,7 +2866,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.d + self.carry_flag)
+        self._sub(self.registers.d + self.registers.carry_flag)
         return 4
 
     def _op_9b(self):
@@ -2922,7 +2882,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.e + self.carry_flag)
+        self._sub(self.registers.e + self.registers.carry_flag)
         return 4
 
     def _op_9c(self):
@@ -2938,7 +2898,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.h + self.carry_flag)
+        self._sub(self.registers.h + self.registers.carry_flag)
         return 4
 
     def _op_9d(self):
@@ -2954,7 +2914,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.l + self.carry_flag)
+        self._sub(self.registers.l + self.registers.carry_flag)
         return 4
 
     def _op_9e(self):
@@ -2970,7 +2930,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.mmu.read_byte((self.h << 8) + self.l) + self.carry_flag)
+        self._sub(self.mmu.read_byte((self.registers.h << 8) + self.registers.l) + self.registers.carry_flag)
         return 8
 
     def _op_9f(self):
@@ -2986,7 +2946,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.a + self.carry_flag)
+        self._sub(self.registers.a + self.registers.carry_flag)
         return 4
 
     def _op_a0(self):
@@ -3001,7 +2961,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._and(self.b)
+        self._and(self.registers.b)
         return 4
 
     def _op_a1(self):
@@ -3016,7 +2976,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._and(self.c)
+        self._and(self.registers.c)
         return 4
 
     def _op_a2(self):
@@ -3031,7 +2991,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._and(self.d)
+        self._and(self.registers.d)
         return 4
 
     def _op_a3(self):
@@ -3046,7 +3006,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._and(self.e)
+        self._and(self.registers.e)
         return 4
 
     def _op_a4(self):
@@ -3061,7 +3021,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._and(self.h)
+        self._and(self.registers.h)
         return 4
 
     def _op_a5(self):
@@ -3076,7 +3036,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._and(self.l)
+        self._and(self.registers.l)
         return 4
 
     def _op_a6(self):
@@ -3091,7 +3051,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._and(self.mmu.read_byte((self.h << 8) + self.l))
+        self._and(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
 
     def _op_a7(self):
@@ -3106,7 +3066,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._and(self.a)
+        self._and(self.registers.a)
         return 4
 
     def _op_a8(self):
@@ -3121,7 +3081,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._xor(self.b)
+        self._xor(self.registers.b)
         return 4
 
     def _op_a9(self):
@@ -3136,7 +3096,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._xor(self.c)
+        self._xor(self.registers.c)
         return 4
 
     def _op_aa(self):
@@ -3151,7 +3111,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._xor(self.d)
+        self._xor(self.registers.d)
         return 4
 
     def _op_ab(self):
@@ -3166,7 +3126,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._xor(self.e)
+        self._xor(self.registers.e)
         return 4
 
     def _op_ac(self):
@@ -3181,7 +3141,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._xor(self.h)
+        self._xor(self.registers.h)
         return 4
 
     def _op_ad(self):
@@ -3196,7 +3156,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._xor(self.l)
+        self._xor(self.registers.l)
         return 4
 
     def _op_ae(self):
@@ -3211,7 +3171,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._xor(self.mmu.read_byte((self.h << 8) + self.l))
+        self._xor(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
 
     def _op_af(self):
@@ -3226,7 +3186,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._xor(self.a)
+        self._xor(self.registers.a)
         return 4
 
     def _op_b0(self):
@@ -3241,7 +3201,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._or(self.b)
+        self._or(self.registers.b)
         return 4
 
     def _op_b1(self):
@@ -3256,7 +3216,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._or(self.c)
+        self._or(self.registers.c)
         return 4
 
     def _op_b2(self):
@@ -3271,7 +3231,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._or(self.d)
+        self._or(self.registers.d)
         return 4
 
     def _op_b3(self):
@@ -3286,7 +3246,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._or(self.e)
+        self._or(self.registers.e)
         return 4
 
     def _op_b4(self):
@@ -3301,7 +3261,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._or(self.h)
+        self._or(self.registers.h)
         return 4
 
     def _op_b5(self):
@@ -3316,7 +3276,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._or(self.l)
+        self._or(self.registers.l)
         return 4
 
     def _op_b6(self):
@@ -3331,7 +3291,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._or(self.mmu.read_byte((self.h << 8) + self.l))
+        self._or(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
 
     def _op_b7(self):
@@ -3346,7 +3306,7 @@ class Cpu(object):
         C - Set to 0
         :return:
         """
-        self._or(self.a)
+        self._or(self.registers.a)
         return 4
 
     def _op_b8(self):
@@ -3362,7 +3322,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._cp(self.b)
+        self._cp(self.registers.b)
         return 4
 
     def _op_b9(self):
@@ -3378,7 +3338,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._cp(self.c)
+        self._cp(self.registers.c)
         return 4
 
     def _op_ba(self):
@@ -3394,7 +3354,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._cp(self.d)
+        self._cp(self.registers.d)
         return 4
 
     def _op_bb(self):
@@ -3410,7 +3370,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._cp(self.e)
+        self._cp(self.registers.e)
         return 4
 
     def _op_bc(self):
@@ -3426,7 +3386,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._cp(self.h)
+        self._cp(self.registers.h)
         return 4
 
     def _op_bd(self):
@@ -3442,7 +3402,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._cp(self.l)
+        self._cp(self.registers.l)
         return 4
 
     def _op_be(self):
@@ -3459,7 +3419,7 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._cp(self.mmu.read_byte((self.h << 8) + self.l))
+        self._cp(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
 
     def _op_bf(self):
@@ -3474,10 +3434,10 @@ class Cpu(object):
         C - 0
         :return:
         """
-        self.zero_flag = 1
-        self.sub_flag = 1
-        self.hc_flag = 0
-        self.carry_flag = 0
+        self.registers.zero_flag = 1
+        self.registers.sub_flag = 1
+        self.registers.hc_flag = 0
+        self.registers.carry_flag = 0
         return 4
 
     def _op_c0(self):
@@ -3489,7 +3449,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.zero_flag == 0:
+        if self.registers.zero_flag == 0:
             return self._op_c9() + 4
         return 8
 
@@ -3502,9 +3462,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.b = self.mmu.read_byte(self.sp + 1)
-        self.c = self.mmu.read_byte(self.sp)
-        self.sp = (self.sp + 2) & 0xffff
+        self.registers.b = self.mmu.read_byte(self.registers.sp + 1)
+        self.registers.c = self.mmu.read_byte(self.registers.sp)
+        self.registers.sp = (self.registers.sp + 2) & 0xffff
         return 12
 
     def _op_c2(self):
@@ -3516,7 +3476,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.zero_flag == 0:
+        if self.registers.zero_flag == 0:
             return self._op_c3()
         return 12
 
@@ -3529,7 +3489,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.pc = (self.mmu.read_byte(self.pc + 1) << 8) + self.mmu.read_byte(self.pc)
+        self.registers.jump((self.mmu.read_byte(self.registers.pc + 1) << 8) + self.mmu.read_byte(self.registers.pc))
         return 16
 
     def _op_c4(self):
@@ -3541,7 +3501,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.zero_flag == 0:
+        if self.registers.zero_flag == 0:
             return self._op_cd()
         return 12
 
@@ -3555,9 +3515,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.sp = (self.sp - 2) & 0xffff
-        self.mmu.write_byte(self.sp, self.c)
-        self.mmu.write_byte(self.sp + 1, self.b)
+        self.registers.sp = (self.registers.sp - 2) & 0xffff
+        self.mmu.write_byte(self.registers.sp, self.registers.c)
+        self.mmu.write_byte(self.registers.sp + 1, self.registers.b)
         return 16
 
     def _op_c6(self):
@@ -3572,8 +3532,8 @@ class Cpu(object):
         C - Set if carry from bit 7.
         :return:
         """
-        self._add(self.mmu.read_byte(self.pc))
-        self.pc += 1
+        self._add(self.mmu.read_byte(self.registers.pc))
+        self.registers.pc += 1
         return 8
 
     def _op_c7(self):
@@ -3598,7 +3558,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.zero_flag:
+        if self.registers.zero_flag:
             return self._op_c9() + 4
         return 8
 
@@ -3611,10 +3571,10 @@ class Cpu(object):
         None
         :return:
         """
-        low = self.mmu.read_byte(self.sp)
-        high = self.mmu.read_byte(self.sp + 1)
-        self.sp = (self.sp + 2) & 0xffff
-        self.pc = (high << 8) | low
+        low = self.mmu.read_byte(self.registers.sp)
+        high = self.mmu.read_byte(self.registers.sp + 1)
+        self.registers.sp = (self.registers.sp + 2) & 0xffff
+        self.registers.pc = (high << 8) | low
         return 16
 
     def _op_ca(self):
@@ -3626,7 +3586,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.zero_flag:
+        if self.registers.zero_flag:
             return self._op_c3()
         return 12
 
@@ -3635,8 +3595,8 @@ class Cpu(object):
         Extended opcode table function.
         :return:
         """
-        ext_op = self.ext_opcodes[self.mmu.read_byte(self.pc)]
-        self.pc += 1
+        ext_op = self.registers.ext_opcodes[self.mmu.read_byte(self.registers.pc)]
+        self.registers.pc += 1
         return ext_op()
 
     def _op_cc(self):
@@ -3648,7 +3608,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.zero_flag:
+        if self.registers.zero_flag:
             return self._op_cd()
         return 12
 
@@ -3661,13 +3621,13 @@ class Cpu(object):
         None
         :return:
         """
-        self.sp = (self.sp - 2) & 0xffff
-        call_addr = self.mmu.read_byte(self.pc)
-        call_addr += self.mmu.read_byte(self.pc + 1) << 8
-        self.pc += 2
-        self.mmu.write_byte(self.sp, self.pc & 0xff)
-        self.mmu.write_byte(self.sp + 1, self.pc >> 8)
-        self.pc = call_addr
+        self.registers.sp = (self.registers.sp - 2) & 0xffff
+        call_addr = self.mmu.read_byte(self.registers.pc)
+        call_addr += self.mmu.read_byte(self.registers.pc + 1) << 8
+        self.registers.pc += 2
+        self.mmu.write_byte(self.registers.sp, self.registers.pc & 0xff)
+        self.mmu.write_byte(self.registers.sp + 1, self.registers.pc >> 8)
+        self.registers.jump(call_addr)
         return 24
 
     def _op_ce(self):
@@ -3682,8 +3642,8 @@ class Cpu(object):
         C - Set if carry from bit 7
         :return:
         """
-        self._add(self.mmu.read_byte(self.pc) + self.carry_flag)
-        self.pc += 1
+        self._add(self.mmu.read_byte(self.registers.pc) + self.registers.carry_flag)
+        self.registers.pc += 1
         return 8
 
     def _op_cf(self):
@@ -3708,7 +3668,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.carry_flag == 0:
+        if self.registers.carry_flag == 0:
             return self._op_c9() + 4
         return 8
 
@@ -3721,9 +3681,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.d = self.mmu.read_byte(self.sp + 1)
-        self.e = self.mmu.read_byte(self.sp)
-        self.sp = (self.sp + 2) & 0xffff
+        self.registers.d = self.mmu.read_byte(self.registers.sp + 1)
+        self.registers.e = self.mmu.read_byte(self.registers.sp)
+        self.registers.sp = (self.registers.sp + 2) & 0xffff
         return 12
 
     def _op_d2(self):
@@ -3735,7 +3695,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.carry_flag == 0:
+        if self.registers.carry_flag == 0:
             return self._op_c3()
         return 12
 
@@ -3755,7 +3715,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.carry_flag == 0:
+        if self.registers.carry_flag == 0:
             return self._op_cd()
         return 12
 
@@ -3769,9 +3729,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.sp = (self.sp - 2) & 0xffff
-        self.mmu.write_byte(self.sp, self.e)
-        self.mmu.write_byte(self.sp + 1, self.d)
+        self.registers.sp = (self.registers.sp - 2) & 0xffff
+        self.mmu.write_byte(self.registers.sp, self.registers.e)
+        self.mmu.write_byte(self.registers.sp + 1, self.registers.d)
         return 16
 
     def _op_d6(self):
@@ -3786,8 +3746,8 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.mmu.read_byte(self.pc))
-        self.pc += 1
+        self._sub(self.mmu.read_byte(self.registers.pc))
+        self.registers.pc += 1
         return 8
 
     def _op_d7(self):
@@ -3812,7 +3772,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.carry_flag:
+        if self.registers.carry_flag:
             return self._op_c9() + 4
         return 8
 
@@ -3838,7 +3798,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.carry_flag:
+        if self.registers.carry_flag:
             return self._op_c3()
         return 12
 
@@ -3858,7 +3818,7 @@ class Cpu(object):
         None
         :return:
         """
-        if self.carry_flag:
+        if self.registers.carry_flag:
             return self._op_cd()
         return 12
 
@@ -3881,8 +3841,8 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._sub(self.mmu.read_byte(self.pc) + self.carry_flag)
-        self.pc += 1
+        self._sub(self.mmu.read_byte(self.registers.pc) + self.registers.carry_flag)
+        self.registers.pc += 1
         return 8
 
     def _op_df(self):
@@ -3907,9 +3867,9 @@ class Cpu(object):
         None
         :return:
         """
-        offset = self.mmu.read_byte(self.pc)
-        self.pc += 1
-        self.mmu.write_byte(0xff00 + offset, self.a)
+        offset = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
+        self.mmu.write_byte(0xff00 + offset, self.registers.a)
         return 12
 
     def _op_e1(self):
@@ -3921,9 +3881,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.h = self.mmu.read_byte(self.sp + 1)
-        self.l = self.mmu.read_byte(self.sp)
-        self.sp = (self.sp + 2) & 0xffff
+        self.registers.h = self.mmu.read_byte(self.registers.sp + 1)
+        self.registers.l = self.mmu.read_byte(self.registers.sp)
+        self.registers.sp = (self.registers.sp + 2) & 0xffff
         return 12
 
     def _op_e2(self):
@@ -3935,7 +3895,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.mmu.write_byte((0xff00 + self.c), self.a)
+        self.mmu.write_byte((0xff00 + self.registers.c), self.registers.a)
         return 8
 
     def _op_e3(self):
@@ -3962,9 +3922,9 @@ class Cpu(object):
         None
         :return:
         """
-        self.sp = (self.sp - 2) & 0xffff
-        self.mmu.write_byte(self.sp, self.l)
-        self.mmu.write_byte(self.sp + 1, self.h)
+        self.registers.sp = (self.registers.sp - 2) & 0xffff
+        self.mmu.write_byte(self.registers.sp, self.registers.l)
+        self.mmu.write_byte(self.registers.sp + 1, self.registers.h)
         return 16
 
     def _op_e6(self):
@@ -3979,8 +3939,8 @@ class Cpu(object):
         C - reset to 0
         :return:
         """
-        self._and(self.mmu.read_byte(self.pc))
-        self.pc += 1
+        self._and(self.mmu.read_byte(self.registers.pc))
+        self.registers.pc += 1
         return 8
 
     def _op_e7(self):
@@ -4008,20 +3968,20 @@ class Cpu(object):
         C - set or reset according to operation
         :return:
         """
-        data = self.mmu.read_byte(self.pc)
-        self.pc += 1
-        self.zero_flag = 0
-        self.sub_flag = 0
-        if (self.sp & 0xf) + (data & 0xf) > 0xf:
-            self.hc_flag = 1
+        data = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
+        self.registers.zero_flag = 0
+        self.registers.sub_flag = 0
+        if (self.registers.sp & 0xf) + (data & 0xf) > 0xf:
+            self.registers.hc_flag = 1
         else:
-            self.hc_flag = 0
-        if (self.sp & 0xff) + (data & 0xff) > 0xff:
-            self.carry_flag = 1
+            self.registers.hc_flag = 0
+        if (self.registers.sp & 0xff) + (data & 0xff) > 0xff:
+            self.registers.carry_flag = 1
         else:
-            self.carry_flag = 0
+            self.registers.carry_flag = 0
 
-        self.sp = (self.sp + data) & 0xffff
+        self.registers.sp = (self.registers.sp + data) & 0xffff
         return 16
 
     def _op_e9(self):
@@ -4033,7 +3993,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.pc = self.mmu.read_byte((self.h << 8) + self.l)
+        self.registers.pc = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         return 4
 
     def _op_ea(self):
@@ -4045,11 +4005,11 @@ class Cpu(object):
         None
         :return:
         """
-        addr = self.mmu.read_byte(self.pc)
-        self.pc += 1
-        addr |= (self.mmu.read_byte(self.pc) << 8)
-        self.pc += 1
-        self.mmu.write_byte(addr, self.a)
+        addr = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
+        addr |= (self.mmu.read_byte(self.registers.pc) << 8)
+        self.registers.pc += 1
+        self.mmu.write_byte(addr, self.registers.a)
         return 16
 
     def _op_eb(self):
@@ -4085,8 +4045,8 @@ class Cpu(object):
         C - Reset to 0
         :return:
         """
-        self._xor(self.mmu.read_byte(self.pc))
-        self.pc += 1
+        self._xor(self.mmu.read_byte(self.registers.pc))
+        self.registers.pc += 1
         return 8
 
     def _op_ef(self):
@@ -4111,9 +4071,9 @@ class Cpu(object):
         None
         :return:
         """
-        offset = self.mmu.read_byte(self.pc)
-        self.pc += 1
-        self.a = self.mmu.read_byte(0xff00 | offset)
+        offset = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
+        self.registers.a = self.mmu.read_byte(0xff00 | offset)
         return 12
 
     def _op_f1(self):
@@ -4122,10 +4082,10 @@ class Cpu(object):
         Pop two bytes off stack into register A and flags register. Increment Stack Pointer (SP) twice.
         :return:
         """
-        self.a = self.mmu.read_byte(self.sp + 1)
-        self.f = self.mmu.read_byte(self.sp) & 0xf0  # flags only hold four bits here
+        self.registers.a = self.mmu.read_byte(self.registers.sp + 1)
+        self.f = self.mmu.read_byte(self.registers.sp) & 0xf0  # flags only hold four bits here
         # TODO: need to translate this read into our separate flags
-        self.sp = (self.sp + 2) & 0xffff
+        self.registers.sp = (self.registers.sp + 2) & 0xffff
         return 12
 
     def _op_f2(self):
@@ -4137,7 +4097,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.mmu.read_byte(0xff00 + self.c)
+        self.registers.a = self.mmu.read_byte(0xff00 + self.registers.c)
         return 8
 
     def _op_f3(self):
@@ -4170,9 +4130,9 @@ class Cpu(object):
         :return:
         """
         # TODO: need to find a way to implement pushing/popping flags register
-        self.sp = (self.sp - 2) & 0xffff
-        self.mmu.write_byte(self.sp, self.f)
-        self.mmu.write_byte(self.sp + 1, self.a)
+        self.registers.sp = (self.registers.sp - 2) & 0xffff
+        self.mmu.write_byte(self.registers.sp, self.f)
+        self.mmu.write_byte(self.registers.sp + 1, self.registers.a)
         return 16
 
     def _op_f6(self):
@@ -4187,8 +4147,8 @@ class Cpu(object):
         C - Reset to 0
         :return:
         """
-        self._or(self.mmu.read_byte(self.pc))
-        self.pc += 1
+        self._or(self.mmu.read_byte(self.registers.pc))
+        self.registers.pc += 1
         return 8
 
     def _op_f7(self):
@@ -4216,22 +4176,22 @@ class Cpu(object):
         C - set or reset according to operation
         :return:
         """
-        offset = self.mmu.read_byte(self.pc)
-        self.pc += 1
+        offset = self.mmu.read_byte(self.registers.pc)
+        self.registers.pc += 1
 
-        addr = self.sp + offset
-        self.h = addr >> 8
-        self.l = addr & 0xff
-        self.zero_flag = 0
-        self.sub_flag = 0
-        if (self.sp & 0xf) + (offset & 0xf) > 0xf:
-            self.hc_flag = 1
+        addr = self.registers.sp + offset
+        self.registers.h = addr >> 8
+        self.registers.l = addr & 0xff
+        self.registers.zero_flag = 0
+        self.registers.sub_flag = 0
+        if (self.registers.sp & 0xf) + (offset & 0xf) > 0xf:
+            self.registers.hc_flag = 1
         else:
-            self.hc_flag = 0
-        if (self.sp & 0xff) + (offset & 0xff) > 0xff:
-            self.carry_flag = 1
+            self.registers.hc_flag = 0
+        if (self.registers.sp & 0xff) + (offset & 0xff) > 0xff:
+            self.registers.carry_flag = 1
         else:
-            self.carry_flag = 0
+            self.registers.carry_flag = 0
         return 12
 
     def _op_f9(self):
@@ -4243,7 +4203,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.sp = (self.h << 8) | self.l
+        self.registers.sp = (self.registers.h << 8) | self.registers.l
         return 8
 
     def _op_fa(self):
@@ -4255,8 +4215,8 @@ class Cpu(object):
         None
         :return:
         """
-        self.a = self.mmu.read_word(self.pc)
-        self.pc += 2
+        self.registers.a = self.mmu.read_word(self.registers.pc)
+        self.registers.pc += 2
         return 16
 
     def _op_fb(self):
@@ -4299,8 +4259,8 @@ class Cpu(object):
         C - Set if no borrow
         :return:
         """
-        self._cp(self.mmu.read_byte(self.pc))
-        self.pc += 1
+        self._cp(self.mmu.read_byte(self.registers.pc))
+        self.registers.pc += 1
         return 8
 
     def _op_ff(self):
@@ -4376,12 +4336,12 @@ class Cpu(object):
         C - Contains old bit 7 data
         :return:
         """
-        self.sub_flag = 0
-        self.hc_flag = 0
-        self.carry_flag = (self.c & 0x80) >> 7
-        self.c = (self.c << 1) & 0xff
-        if self.c == 0:
-            self.zero_flag = 1
+        self.registers.sub_flag = 0
+        self.registers.hc_flag = 0
+        self.registers.carry_flag = (self.registers.c & 0x80) >> 7
+        self.registers.c = (self.registers.c << 1) & 0xff
+        if self.registers.c == 0:
+            self.registers.zero_flag = 1
 
     def _op_cb_12(self):
         pass
@@ -4713,12 +4673,12 @@ class Cpu(object):
         C - Not affected
         :return:
         """
-        self.sub_flag = 0
-        self.hc_flag = 1
-        if self.h & 0x80 == 0x80:
-            self.zero_flag = 0
+        self.registers.sub_flag = 0
+        self.registers.hc_flag = 1
+        if self.registers.h & 0x80 == 0x80:
+            self.registers.zero_flag = 0
         else:
-            self.zero_flag = 1
+            self.registers.zero_flag = 1
 
     def _op_cb_7d(self):
         pass
@@ -4759,7 +4719,7 @@ class Cpu(object):
         None
         :return:
         """
-        self.a &= 0xfe
+        self.registers.a &= 0xfe
         return 8
 
     def _op_cb_88(self):
