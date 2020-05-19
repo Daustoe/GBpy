@@ -534,7 +534,8 @@ class Cpu(object):
 
     def cycle(self):
         """
-        Single cpu cycle. Reads opcode at program counter in memory. Executes that opcode.
+        Single cpu cycle.
+        Reads opcode at program counter in memory. Executes that opcode.
         """
         self.opcode = self.mmu.read_byte(self.registers.pc)
         self.registers.pc += 1
@@ -551,7 +552,7 @@ class Cpu(object):
         """
         Push present program counter (pc) onto stack. Jump to new pc given.
         :param pc:
-        :return:
+            program counter that we will be jumping to
         """
         self.registers.sp -= 2
         # TODO: Something seems off here..., don't know why I'm reading instead of writing
@@ -561,7 +562,8 @@ class Cpu(object):
 
     def _cp(self, value):
         """
-        Compare A with value. Results are not kept in A. This op does not affect registers in any way.
+        Compare register A with value. Results are not kept in A.
+        This op does not affect registers in any way.
 
         Flags affected:
         Z - Set if result is zero
@@ -570,7 +572,7 @@ class Cpu(object):
         C - Set if A < n
 
         :param value:
-        :return:
+            integer value to compare
         """
         self.registers.sub_flag = 1
         if self.registers.a == value:
@@ -597,7 +599,7 @@ class Cpu(object):
         C - Not affected
 
         :param register:
-        :return:
+            target register to increment by one
         """
         temp = getattr(self.registers, register) + 1
         setattr(self.registers, register, temp)
@@ -616,7 +618,7 @@ class Cpu(object):
         C - Not affected
 
         :param register:
-        :return:
+            target register to decrement by one
         """
         temp = getattr(self.registers, register) - 1
         setattr(self.registers, register, temp)
@@ -635,7 +637,7 @@ class Cpu(object):
         C - Set if carry from bit 7
 
         :param value:
-        :return:
+            integer value to add to register A
         """
         self.registers.hc_flag = 1 if ((self.registers.a & 0xf) + (value & 0xf)) > 0xf else 0
         self.registers.a += value
@@ -654,7 +656,7 @@ class Cpu(object):
         C - Set if no borrow
 
         :param value:
-        :return:
+            integer value to substract from register A
         """
         self.registers.hc_flag = 1 if (self.registers.a & 0xf) < (value & 0xf) else 0
         self.registers.carry_flag = 1 if self.registers.a < value else 0
@@ -673,7 +675,7 @@ class Cpu(object):
         C - Reset to 0
 
         :param value:
-        :return:
+            integer value to AND with register A
         """
         self.registers.a &= value
         self.registers.zero_flag = 1 if self.registers.a == 0 else 0
@@ -683,10 +685,16 @@ class Cpu(object):
 
     def _or(self, value):
         """
-        Logical OR abstracted method used by OR opcodes. All OR operations compare the given value with the
-        Accumulator register (register A) whether that value be from memory or from another register.
+        Logical OR abstracted method used by OR opcodes.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        #TODO: check if flag values are correct.
         :param value:
-        :return:
+            integer value to OR with register A
         """
         self.registers.a |= value
         self.registers.zero_flag = 1 if self.registers.a == 0 else 0
@@ -696,8 +704,7 @@ class Cpu(object):
 
     def _xor(self, value):
         """
-        Logical XOR abstracted method used for XOR opcodes. All XOR operations compare a value to the
-        Accumulator register (register A) whether that value be from memory or from another register.
+        Logical XOR abstracted method used for XOR opcodes.
         :param value:
         :return:
         """

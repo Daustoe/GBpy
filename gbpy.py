@@ -7,7 +7,8 @@ import pyglet
 
 class Gbpy(pyglet.window.Window):
     """
-    GameBoy Py emulator class. Subclasses pyglet Window class and contains the cpu, gpu, and mmu of the GB interpreter.
+    GameBoy Py emulator class. Subclasses pyglet Window class and contains the
+    cpu, gpu, and mmu of the GB interpreter.
     """
 
     def __init__(self, *args, **kwargs):
@@ -20,9 +21,9 @@ class Gbpy(pyglet.window.Window):
 
     def load_rom(self, rom_path):
         """
-        hands off to mmu to load the given rom.
+        Hand off to mmu to load the rom into memory from file at rom_path.
         :param rom_path:
-        :return:
+            Path to ROM on system
         """
         self.mmu.load(rom_path)
 

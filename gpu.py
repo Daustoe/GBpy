@@ -34,11 +34,13 @@ class GPU(object):
 
     def step(self, clock_ticks):
         """
-        Essentially this should be called after every opcode to update where the GPU is in drawing the screen.
-        Each instruction carries a gpu cycle count with it, and that change gets reconputed here. Depending on what
-        stage you are in, this may call the screen to be redrawn (basically when we hit v-blank)
+        Essentially this should be called after every opcode to update where the
+        GPU is in drawing the screen.
+        Each instruction carries a gpu cycle count with it, and that change gets
+        reconputed here. Depending on what stage you are in, this may call the
+        screen to be redrawn (basically when we hit v-blank)
         :param clock_ticks:
-        :return:
+            cpu ticks required for given step, provided by operation
         """
 
         self.mode_clock += clock_ticks
@@ -54,7 +56,7 @@ class GPU(object):
                 # Enter mode 0 (h-blank)
                 self.mode_clock = 0
                 self.mode = 0
-                # At this point you can write one horizontal line to the frame buffer
+                # At this point write one horizontal line to the frame buffer
         elif self.mode == 0:
             # H-blank
             if self.mode_clock >= 204:
@@ -93,6 +95,7 @@ class GPU(object):
 
     def reset(self):
         """
-        Resets all private variables to default values. Needed when restarting rom.
+        Resets all private variables to default values.
+        Needed when restarting rom.
         """
         pass
