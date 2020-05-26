@@ -550,9 +550,12 @@ class Cpu(object):
 
     def _rst(self, pc):
         """
+        RST pc
         Push present program counter (pc) onto stack. Jump to new pc given.
         :param pc:
             program counter that we will be jumping to
+        :return int:
+
         """
         self.registers.sp -= 2
         # TODO: Something seems off here..., don't know why I'm reading instead of writing
@@ -705,8 +708,15 @@ class Cpu(object):
     def _xor(self, value):
         """
         Logical XOR abstracted method used for XOR opcodes.
+
+        Flags affected:
+        Z - Set if result is zero
+        N - Set to 0
+        H - Set to 0
+        C - Set to 0
+        #TODO: check if flag values are correct.
         :param value:
-        :return:
+            integer value to XOR with register A
         """
         self.registers.a ^= value
         self.registers.zero_flag = 1 if self.registers.a == 0 else 0
@@ -718,9 +728,11 @@ class Cpu(object):
         """
         NOP
         No operation, clocks still cycle.
+        Flags affected:
+        None
 
         :return:
-        4
+            int : number of clock cycles should pass
         """
         return 4
 
@@ -731,7 +743,9 @@ class Cpu(object):
 
         Flags affected:
         None
+
         :return:
+            int : number of clock cycles that occur
         """
         self.registers.c = self.mmu.read_byte(self.registers.pc)
         self.registers.b = self.mmu.read_byte(self.registers.pc + 1)
@@ -745,9 +759,12 @@ class Cpu(object):
 
         Flags affected:
         None
+
         :return:
+            int : number of clock cycles that occur
         """
-        self.mmu.write_byte((self.registers.b << 8) + self.registers.c, self.registers.a)
+        self.mmu.write_byte((self.registers.b << 8) + self.registers.c,
+                             self.registers.a)
         return 8
 
     def _op_03(self):
@@ -760,7 +777,9 @@ class Cpu(object):
         N - Reset
         H - Set if carry from bit 3.
         C - Not affected
+
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.c += 1
         if self.registers.c == 0:
@@ -778,6 +797,7 @@ class Cpu(object):
         H - Set if carry from bit 3.
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._inc('b')
         return 4
@@ -793,6 +813,7 @@ class Cpu(object):
         H - Set if no borrow from bit 4
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._dec('b')
         return 4
@@ -805,6 +826,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.b = self.mmu.read_byte(self.registers.pc)
         self.registers.pc += 1
@@ -821,6 +843,7 @@ class Cpu(object):
         H - set to 0
         C - Contains old bit 7 data
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.carry_flag = (self.registers.a & 0x80) // 0x80
         self.registers.a = ((self.registers.a << 1) | self.registers.carry_flag)
@@ -837,6 +860,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.mmu.write_word(self.registers.pc, self.registers.sp)
         return 20
@@ -852,6 +876,7 @@ class Cpu(object):
         H - Set if carry from bit 11
         C - Set if carry from bit 15
         :return:
+            int: number of clock cycles that occur
         """
         hl = (self.registers.h << 8) + self.registers.l
         bc = (self.registers.b << 8) + self.registers.c
@@ -872,6 +897,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.a = self.mmu.read_byte((self.registers.b << 8) | self.registers.c)
         return 8
@@ -884,6 +910,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.c -= 1
         if self.registers.c == 0xff:
@@ -901,6 +928,7 @@ class Cpu(object):
         H - Set if carry from bit 3.
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._inc('c')
         return 4
@@ -916,6 +944,7 @@ class Cpu(object):
         H - Set if no borrow from bit 4
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._dec('c')
         return 4
@@ -928,6 +957,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.c = self.mmu.read_byte(self.registers.pc)
         self.registers.pc += 1
@@ -944,6 +974,7 @@ class Cpu(object):
         H - set to 0
         C - contains old bit 0 data
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.carry_flag = self.registers.a & 0x1
         self.registers.a = (self.registers.a >> 1) | (self.registers.carry_flag * 0x80)
@@ -960,6 +991,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         # TODO: Once cycles implemented, add functionality to stop cycles here.
         return 4
@@ -972,6 +1004,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.e = self.mmu.read_byte(self.registers.pc)
         self.registers.d = self.mmu.read_byte(self.registers.pc + 1)
@@ -986,6 +1019,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.mmu.write_byte((self.registers.d << 8) + self.registers.e, self.registers.a)
         return 8
@@ -1001,6 +1035,7 @@ class Cpu(object):
         H - Set if carry from bit 3.
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.e += 1
         if self.registers.e == 0:
@@ -1018,6 +1053,7 @@ class Cpu(object):
         H - Set if carry from bit 3.
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._inc('d')
         return 4
@@ -1033,6 +1069,7 @@ class Cpu(object):
         H - Set if carry from bit 3.
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._dec('d')
         return 4
@@ -1045,6 +1082,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.d = self.mmu.read_byte(self.registers.pc)
         self.registers.pc += 1
@@ -1058,6 +1096,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         high_bit = (self.registers.a & 0x80) << 7
         self.registers.a = ((self.registers.a << 1) & 0xff) | self.registers.carry_flag
@@ -1075,6 +1114,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         delta = self.mmu.read_byte(self.registers.pc)
         self.registers.pc += 1
@@ -1085,7 +1125,7 @@ class Cpu(object):
 
     def _op_19(self):
         """
-        Add HL, DE
+        ADD HL, DE
         Add DE register pair to HL.
 
         Flags affected:
@@ -1094,6 +1134,7 @@ class Cpu(object):
         H - Set if carry from bit 11
         C - Set if carry from bit 15
         :return:
+            int: number of clock cycles that occur
         """
         hl = (self.registers.h << 8) + self.registers.l
         de = (self.registers.d << 8) + self.registers.e
@@ -1108,11 +1149,13 @@ class Cpu(object):
 
     def _op_1a(self):
         """
+        LD A, (DE)
         Store value at memory address (DE) in register A.
 
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.a = self.mmu.read_byte((self.registers.d << 8) | self.registers.e)
         return 8
@@ -1125,6 +1168,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.e = (self.registers.e - 1) & 0xff
         if self.registers.e == 0xff:
@@ -1142,6 +1186,7 @@ class Cpu(object):
         H - Set if carry from bit 3.
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._inc('e')
         return 4
@@ -1157,6 +1202,7 @@ class Cpu(object):
         H - Set if no borrow from bit 4
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._dec('e')
         return 4
@@ -1169,6 +1215,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.e = self.mmu.read_byte(self.registers.pc)
         self.registers.pc += 1
@@ -1185,6 +1232,7 @@ class Cpu(object):
         H - set to 0
         C - contains old bit 0 data
         :return:
+            int: number of clock cycles that occur
         """
         low_bit = self.registers.a & 0x1
         self.registers.a = ((self.registers.a >> 1) & 0xff) | (self.registers.carry_flag * 0x80)
@@ -1202,6 +1250,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         if self.registers.zero_flag == 0:
             return self._op_18()
@@ -1217,6 +1266,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.l = self.mmu.read_byte(self.registers.pc)
         self.registers.h = self.mmu.read_byte(self.registers.pc + 1)
@@ -1226,11 +1276,13 @@ class Cpu(object):
     def _op_22(self):
         """
         LD (HL+), A
-        Store value in register A at memory location (HL). Increment register pair HL afterwards.
+        Store value in register A at memory location (HL).
+        Increment register pair HL afterwards.
 
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.a)
         self.registers.l = (self.registers.l + 1) & 0xff
@@ -1249,6 +1301,7 @@ class Cpu(object):
         H - Set if carry from bit 3.
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.l = (self.registers.l + 1) & 0xff
         if self.registers.l == 0:
@@ -1266,6 +1319,7 @@ class Cpu(object):
         H - Set if carry from bit 3.
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._inc('h')
         return 4
@@ -1281,6 +1335,7 @@ class Cpu(object):
         H - Set if carry from bit 3
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._dec('h')
         return 4
@@ -1293,6 +1348,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.h = self.mmu.read_byte(self.registers.pc)
         self.registers.pc += 1
@@ -1302,8 +1358,8 @@ class Cpu(object):
         """
         DAA
         Decimal adjust register A.
-        This instruction adjusts register A so that the correct representation of Binary Coded Decimal (BCD)
-        is obtained.
+        This instruction adjusts register A so that the correct representation
+        of Binary Coded Decimal (BCD) is obtained.
 
         Flags affected:
         Z - Set if register A is zero
@@ -1311,6 +1367,7 @@ class Cpu(object):
         H - set to 0
         C - set if register carries over 0xff
         :return:
+            int: number of clock cycles that occur
         """
         if not self.registers.sub_flag:
             if self.registers.hc_flag or (self.registers.a & 0xf) > 0x9:
@@ -1338,6 +1395,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         if self.registers.zero_flag:
             return self._op_18()
@@ -1356,7 +1414,9 @@ class Cpu(object):
         H - Set if carry from bit 11
         C - Set if carry from bit 15
         :return:
+            int: number of clock cycles that occur
         """
+        #TODO: not finished yet, need to implement
         data = (self.registers.h << 8) | self.registers.l
         return 8
 
@@ -1368,6 +1428,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.a = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         self.registers.l = (self.registers.l + 1) & 0xff
@@ -1383,6 +1444,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.l = (self.registers.l - 1) & 255
         if self.registers.l == 255:
@@ -1400,6 +1462,7 @@ class Cpu(object):
         H - Set if carry from bit 3.
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._inc('l')
         return 4
@@ -1415,6 +1478,7 @@ class Cpu(object):
         H - Set if carry from bit 3
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self._dec('l')
         return 4
@@ -1427,6 +1491,7 @@ class Cpu(object):
         Flags affected:
         None
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.l = self.mmu.read_byte(self.registers.pc)
         self.registers.pc += 1
@@ -1443,6 +1508,7 @@ class Cpu(object):
         H - Set to 1
         C - Not affected
         :return:
+            int: number of clock cycles that occur
         """
         self.registers.a ^= 0xff
         self.registers.sub_flag = 1
@@ -1456,7 +1522,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         if self.registers.carry_flag == 0:
             return self._op_18()
@@ -1471,7 +1538,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.sp = self.mmu.read_word(self.registers.pc)
         self.registers.pc += 2
@@ -1484,7 +1552,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.a)
         self.registers.l = (self.registers.l - 1) & 0xff
@@ -1499,7 +1568,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.sp = (self.registers.sp + 1) & 0xffff
         return 8
@@ -1514,7 +1584,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry on bit 3
         C - Not affected
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         addr = (self.registers.h << 8) + self.registers.l
         value = (self.mmu.read_byte(addr) + 1) & 0xff
@@ -1540,7 +1611,8 @@ class Cpu(object):
         N - Set to 1
         H - Set if carry on bit 3
         C - Not affected
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         temp = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         temp = (temp - 1) & 0xff
@@ -1557,7 +1629,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.mmu.read_byte(self.registers.pc))
         self.registers.pc += 1
@@ -1573,7 +1646,8 @@ class Cpu(object):
         N - set to zero
         H - set to zero
         C - set to 1
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.carry_flag = 1
         self.registers.hc_flag = 0
@@ -1587,7 +1661,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         if self.registers.carry_flag:
             return self._op_18()
@@ -1605,7 +1680,8 @@ class Cpu(object):
         N - Reset to 0
         H - Set if carry from bit 11
         C - Set if carry from bit 15
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         hl = (self.registers.h << 8) + self.registers.l
         if hl + self.registers.sp > 0xffff:
@@ -1624,7 +1700,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.a = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         temp = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
@@ -1639,7 +1716,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.sp = (self.registers.sp - 1) & 0xffff
         return 8
@@ -1654,7 +1732,8 @@ class Cpu(object):
         N - Reset
         H - Set if carry from bit 3.
         C - Not affected
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._inc('a')
         return 4
@@ -1669,7 +1748,8 @@ class Cpu(object):
         N - Set to 1
         H - Set if carry on bit 3
         C - Not affected
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._dec('a')
         return 4
@@ -1681,7 +1761,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.a = self.mmu.read_byte(self.registers.pc)
         self.registers.pc += 1
@@ -1689,6 +1770,7 @@ class Cpu(object):
 
     def _op_3f(self):
         """
+        CCF
         Complement carry flag.
         If C flag is set, then reset it.
         If C flag is reset, then set it.
@@ -1698,7 +1780,8 @@ class Cpu(object):
         N - set to 0
         H - set to 0
         C - complemented
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.sub_flag = 0
         self.registers.hc_flag = 0
@@ -1712,7 +1795,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         return 4
 
@@ -1723,7 +1807,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.b = self.registers.c
         return 4
@@ -1735,7 +1820,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.b = self.registers.d
         return 4
@@ -1747,7 +1833,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.b = self.registers.e
         return 4
@@ -1759,7 +1846,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.b = self.registers.h
         return 4
@@ -1771,7 +1859,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.b = self.registers.l
         return 4
@@ -1783,7 +1872,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.b = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         return 8
@@ -1795,7 +1885,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.b = self.registers.a
         return 4
@@ -1807,7 +1898,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.c = self.registers.b
         return 4
@@ -1819,7 +1911,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         return 4
 
@@ -1830,7 +1923,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.c = self.registers.d
         return 4
@@ -1842,7 +1936,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.c = self.registers.e
         return 4
@@ -1854,7 +1949,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.c = self.registers.h
         return 4
@@ -1866,7 +1962,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.c = self.registers.l
         return 4
@@ -1878,7 +1975,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.c = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         return 4
@@ -1890,7 +1988,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.c = self.registers.a
         return 4
@@ -1902,7 +2001,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.d = self.registers.b
         return 4
@@ -1914,7 +2014,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.d = self.registers.c
         return 4
@@ -1926,7 +2027,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         return 4
 
@@ -1937,7 +2039,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.d = self.registers.e
         return 4
@@ -1949,7 +2052,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.d = self.registers.h
         return 4
@@ -1961,7 +2065,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.d = self.registers.l
         return 4
@@ -1973,7 +2078,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.d = self.mmu.read_byte(self.registers.h << 8 + self.registers.l)
         return 8
@@ -1985,7 +2091,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.d = self.registers.a
         return 4
@@ -1997,7 +2104,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.e = self.registers.b
         return 4
@@ -2009,7 +2117,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.e = self.registers.c
         return 4
@@ -2021,7 +2130,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.e = self.registers.d
         return 4
@@ -2033,7 +2143,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         return 4
 
@@ -2044,7 +2155,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.e = self.registers.h
         return 4
@@ -2056,7 +2168,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.e = self.registers.l
         return 4
@@ -2068,7 +2181,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.e = self.mmu.read_byte(self.registers.h << 8 + self.registers.l)
         return 8
@@ -2080,7 +2194,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.e = self.registers.a
         return 4
@@ -2092,7 +2207,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.h = self.registers.b
         return 4
@@ -2104,7 +2220,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.h = self.registers.c
         return 4
@@ -2116,7 +2233,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.h = self.registers.d
         return 4
@@ -2128,7 +2246,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.h = self.registers.e
         return 4
@@ -2140,7 +2259,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         return 4
 
@@ -2151,7 +2271,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.h = self.registers.l
         return 4
@@ -2163,7 +2284,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.h = self.mmu.read_byte(self.registers.h << 8 + self.registers.l)
         return 8
@@ -2175,7 +2297,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.h = self.registers.a
         return 4
@@ -2187,7 +2310,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.l = self.registers.b
         return 4
@@ -2199,7 +2323,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.l = self.registers.c
         return 4
@@ -2211,7 +2336,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.l = self.registers.d
         return 4
@@ -2223,7 +2349,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.l = self.registers.e
         return 4
@@ -2235,7 +2362,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.l = self.registers.h
         return 4
@@ -2247,7 +2375,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         return 4
 
@@ -2258,9 +2387,11 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
-        self.registers.l = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
+        self.registers.l = self.mmu.read_byte((self.registers.h << 8)
+                                               + self.registers.l)
         return 8
 
     def _op_6f(self):
@@ -2270,7 +2401,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.l = self.registers.a
         return 4
@@ -2282,9 +2414,11 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
-        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.b)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l,
+                            self.registers.b)
         return 8
 
     def _op_71(self):
@@ -2294,9 +2428,11 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
-        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.c)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l,
+                            self.registers.c)
         return 8
 
     def _op_72(self):
@@ -2306,9 +2442,11 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
-        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.d)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l,
+                            self.registers.d)
         return 8
 
     def _op_73(self):
@@ -2318,9 +2456,11 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
-        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.e)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l,
+                            self.registers.e)
         return 8
 
     def _op_74(self):
@@ -2330,9 +2470,11 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
-        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.h)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l,
+                            self.registers.h)
         return 8
 
     def _op_75(self):
@@ -2342,20 +2484,22 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
-        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.l)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l,
+                            self.registers.l)
         return 8
 
     def _op_76(self):
         """
         HALT
-        Halts cpu clock. Used in original GameBoy as a way to reduce energy consumption.
-        Will wait until an interrupt occurs.
+        Halts cpu clock. Will wait until an interrupt occurs.
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         # TODO: Implement once we have started working on cycle routines
         return 4
@@ -2367,9 +2511,11 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
-        self.mmu.write_byte((self.registers.h << 8) + self.registers.l, self.registers.a)
+        self.mmu.write_byte((self.registers.h << 8) + self.registers.l,
+                            self.registers.a)
         return 8
 
     def _op_78(self):
@@ -2379,7 +2525,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.a = self.registers.b
         return 4
@@ -2391,7 +2538,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.a = self.registers.c
         return 4
@@ -2403,7 +2551,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.a = self.registers.d
         return 4
@@ -2415,7 +2564,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.a = self.registers.e
         return 4
@@ -2427,7 +2577,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.a = self.registers.h
         return 4
@@ -2439,7 +2590,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.a = self.registers.l
         return 4
@@ -2451,7 +2603,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.a = self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
         return 8
@@ -2463,7 +2616,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         return 4
 
@@ -2477,7 +2631,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.b)
         return 4
@@ -2492,7 +2647,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.c)
         return 4
@@ -2507,7 +2663,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.d)
         return 4
@@ -2522,7 +2679,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.e)
         return 4
@@ -2537,7 +2695,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.h)
         return 4
@@ -2552,7 +2711,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.l)
         return 4
@@ -2560,14 +2720,15 @@ class Cpu(object):
     def _op_86(self):
         """
         ADD A, (HL)
-        Adds value stored in memory address (HL) to regiter A and stores sum in register A.
+        Adds value stored at address (HL) to regiter A and stores sum in A.
 
         Flags affected:
         Z - Set if value is zero
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
@@ -2582,7 +2743,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.a)
         return 4
@@ -2597,7 +2759,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.b + self.registers.carry_flag)
         return 4
@@ -2612,7 +2775,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.c + self.registers.carry_flag)
         return 4
@@ -2627,7 +2791,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.d + self.registers.carry_flag)
         return 4
@@ -2642,7 +2807,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.e + self.registers.carry_flag)
         return 4
@@ -2657,7 +2823,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.h + self.registers.carry_flag)
         return 4
@@ -2672,7 +2839,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.l + self.registers.carry_flag)
         return 4
@@ -2687,7 +2855,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.mmu.read_byte((self.registers.h << 8) + self.registers.l) + self.registers.carry_flag)
         return 8
@@ -2702,7 +2871,8 @@ class Cpu(object):
         N - Set to 0
         H - Set if carry from bit 3
         C - Set if carry from bit 7
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.registers.a + self.registers.carry_flag)
         return 4
@@ -2710,14 +2880,16 @@ class Cpu(object):
     def _op_90(self):
         """
         SUB A, B
-        Subtract value in register B from value in register A. Store remaining value in register A.
+        Subtract value in register B from value in register A.
+        Store remaining value in register A.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.b)
         return 4
@@ -2725,14 +2897,16 @@ class Cpu(object):
     def _op_91(self):
         """
         SUB A, C
-        Subtract value in register C from value in register A. Store remaining value in register A.
+        Subtract value in register C from value in register A.
+        Store remaining value in register A.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.c)
         return 4
@@ -2740,14 +2914,16 @@ class Cpu(object):
     def _op_92(self):
         """
         SUB A, D
-        Subtract value in register D from value in register A. Store remaining value in register A.
+        Subtract value in register D from value in register A.
+        Store remaining value in register A.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.d)
         return 4
@@ -2755,14 +2931,16 @@ class Cpu(object):
     def _op_93(self):
         """
         SUB A, E
-        Subtract value in register E from value in register A. Store remaining value in register A.
+        Subtract value in register E from value in register A.
+        Store remaining value in register A.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.e)
         return 4
@@ -2770,14 +2948,16 @@ class Cpu(object):
     def _op_94(self):
         """
         SUB A, H
-        Subtract value in register H from value in register A. Store remaining value in register A.
+        Subtract value in register H from value in register A.
+        Store remaining value in register A.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.h)
         return 4
@@ -2785,14 +2965,16 @@ class Cpu(object):
     def _op_95(self):
         """
         SUB A, L
-        Subtract value in register L from value in register A. Store remaining value in register A.
+        Subtract value in register L from value in register A.
+        Store remaining value in register A.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.l)
         return 4
@@ -2800,14 +2982,16 @@ class Cpu(object):
     def _op_96(self):
         """
         SUB A, (HL)
-        Subtract value stored at memory address (HL) from value in register A. Store remaining value in register A.
+        Subtract value stored at memory address (HL) from value in register A.
+        Store remaining value in register A.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
@@ -2823,7 +3007,8 @@ class Cpu(object):
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.a)
         return 4
@@ -2839,7 +3024,8 @@ class Cpu(object):
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.b + self.registers.carry_flag)
         return 4
@@ -2855,7 +3041,8 @@ class Cpu(object):
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.c + self.registers.carry_flag)
         return 4
@@ -2871,7 +3058,8 @@ class Cpu(object):
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.d + self.registers.carry_flag)
         return 4
@@ -2887,7 +3075,8 @@ class Cpu(object):
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.e + self.registers.carry_flag)
         return 4
@@ -2903,7 +3092,8 @@ class Cpu(object):
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.h + self.registers.carry_flag)
         return 4
@@ -2919,7 +3109,8 @@ class Cpu(object):
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.l + self.registers.carry_flag)
         return 4
@@ -2927,17 +3118,19 @@ class Cpu(object):
     def _op_9e(self):
         """
         SBC A, (HL)
-        Subtract value stored at memory address (HL) from register A and the carry flag.
-        Store result in register A.
+        Subtract value stored at memory address (HL) from register A and the
+        carry flag. Store result in register A.
 
         Flags affected:
         Z - Set to 0
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
-        self._sub(self.mmu.read_byte((self.registers.h << 8) + self.registers.l) + self.registers.carry_flag)
+        self._sub(self.mmu.read_byte((self.registers.h << 8) + self.registers.l)
+                                      + self.registers.carry_flag)
         return 8
 
     def _op_9f(self):
@@ -2951,7 +3144,8 @@ class Cpu(object):
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._sub(self.registers.a + self.registers.carry_flag)
         return 4
@@ -2966,7 +3160,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 1
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._and(self.registers.b)
         return 4
@@ -2981,7 +3176,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 1
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._and(self.registers.c)
         return 4
@@ -2996,7 +3192,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 1
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._and(self.registers.d)
         return 4
@@ -3011,7 +3208,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 1
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._and(self.registers.e)
         return 4
@@ -3026,7 +3224,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 1
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._and(self.registers.h)
         return 4
@@ -3041,7 +3240,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 1
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._and(self.registers.l)
         return 4
@@ -3049,14 +3249,16 @@ class Cpu(object):
     def _op_a6(self):
         """
         AND (HL)
-        Logical bitwise AND the value stored in memory at (HL) and the register A. Store the result in register A.
+        Bitwise AND the value stored in memory at (HL) and the register A.
+        Store the result in register A.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 0
         H - Set to 1
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._and(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
@@ -3071,7 +3273,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 1
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._and(self.registers.a)
         return 4
@@ -3086,7 +3289,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._xor(self.registers.b)
         return 4
@@ -3101,7 +3305,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._xor(self.registers.c)
         return 4
@@ -3116,7 +3321,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._xor(self.registers.d)
         return 4
@@ -3131,7 +3337,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._xor(self.registers.e)
         return 4
@@ -3146,7 +3353,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._xor(self.registers.h)
         return 4
@@ -3161,7 +3369,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._xor(self.registers.l)
         return 4
@@ -3176,7 +3385,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._xor(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
@@ -3191,7 +3401,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._xor(self.registers.a)
         return 4
@@ -3206,7 +3417,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._or(self.registers.b)
         return 4
@@ -3221,7 +3433,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._or(self.registers.c)
         return 4
@@ -3236,7 +3449,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._or(self.registers.d)
         return 4
@@ -3251,7 +3465,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._or(self.registers.e)
         return 4
@@ -3266,7 +3481,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._or(self.registers.h)
         return 4
@@ -3281,7 +3497,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._or(self.registers.l)
         return 4
@@ -3289,14 +3506,16 @@ class Cpu(object):
     def _op_b6(self):
         """
         OR (HL)
-        Logical bitwise OR the value stored in memory at address (HL) and register A. Store the result in register A.
+        Bitwise OR the value stored in memory at address (HL) and register A.
+        Store the result in register A.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._or(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
@@ -3311,7 +3530,8 @@ class Cpu(object):
         N - Set to 0
         H - Set to 0
         C - Set to 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._or(self.registers.a)
         return 4
@@ -3319,15 +3539,15 @@ class Cpu(object):
     def _op_b8(self):
         """
         CP B
-        Compare register B to register A. Basically does a subtraction routine but does not store the result.
-        Only flags are affected.
+        Compare register B to register A. Used to set flags for program use.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._cp(self.registers.b)
         return 4
@@ -3335,15 +3555,15 @@ class Cpu(object):
     def _op_b9(self):
         """
         CP C
-        Compare register C to register A. Basically does a subtraction routine but does not store the result.
-        Only flags are affected.
+        Compare register C to register A. Used to set flags for program use.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._cp(self.registers.c)
         return 4
@@ -3351,15 +3571,15 @@ class Cpu(object):
     def _op_ba(self):
         """
         CP D
-        Compare register D to register A. Basically does a subtraction routine but does not store the result.
-        Only flags are affected.
+        Compare register D to register A. Used to set flags for program use.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._cp(self.registers.d)
         return 4
@@ -3367,15 +3587,15 @@ class Cpu(object):
     def _op_bb(self):
         """
         CP E
-        Compare register E to register A. Basically does a subtraction routine but does not store the result.
-        Only flags are affected.
+        Compare register E to register A. Used to set flags for program use.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._cp(self.registers.e)
         return 4
@@ -3383,15 +3603,15 @@ class Cpu(object):
     def _op_bc(self):
         """
         CP H
-        Compare register H to register A. Basically does a subtraction routine but does not store the result.
-        Only flags are affected.
+        Compare register H to register A. Used to set flags for program use.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._cp(self.registers.h)
         return 4
@@ -3399,15 +3619,15 @@ class Cpu(object):
     def _op_bd(self):
         """
         CP L
-        Compare register L to register A. Basically does a subtraction routine but does not store the result.
-        Only flags are affected.
+        Compare register L to register A. Used to set flags for program use.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._cp(self.registers.l)
         return 4
@@ -3415,16 +3635,16 @@ class Cpu(object):
     def _op_be(self):
         """
         CP (HL)
-        Compare value stored in memory at (HL) with register A.
-        Basically does a subtraction routine but does not store the result.
-        Only flags are affected.
+        Compare value stored in memory at (HL) to register A.
+        Used to set flags for program use.
 
         Flags affected:
         Z - Set if result is zero
         N - Set to 1
         H - Set if no borrow from bit 4
         C - Set if no borrow
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._cp(self.mmu.read_byte((self.registers.h << 8) + self.registers.l))
         return 8
@@ -3439,7 +3659,8 @@ class Cpu(object):
         N - 1
         H - 0
         C - 0
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.zero_flag = 1
         self.registers.sub_flag = 1
@@ -3454,7 +3675,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         if self.registers.zero_flag == 0:
             return self._op_c9() + 4
@@ -3463,11 +3685,13 @@ class Cpu(object):
     def _op_c1(self):
         """
         POP BC
-        Pop two bytes off stack into register pair BC. Increment Stack Pointer (SP) twice.
+        Pop two bytes off of stack into register pair BC.
+        Increment Stack Pointer (SP) twice.
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.b = self.mmu.read_byte(self.registers.sp + 1)
         self.registers.c = self.mmu.read_byte(self.registers.sp)
@@ -3477,11 +3701,12 @@ class Cpu(object):
     def _op_c2(self):
         """
         JP NZ, nn
-        Jump to address nn if zero flag == 0
+        Jump to address nn if zero flag == 0.
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         if self.registers.zero_flag == 0:
             return self._op_c3()
@@ -3490,13 +3715,16 @@ class Cpu(object):
     def _op_c3(self):
         """
         JP nn
-        Jump to address nn. nn is two next bytes read from memory at current program counter (pc)
+        Jump to address nn.
+        nn is two next bytes read from memory at current program counter (pc).
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
-        self.registers.jump((self.mmu.read_byte(self.registers.pc + 1) << 8) + self.mmu.read_byte(self.registers.pc))
+        self.registers.jump((self.mmu.read_byte(self.registers.pc + 1) << 8) +
+                            self.mmu.read_byte(self.registers.pc))
         return 16
 
     def _op_c4(self):
@@ -3506,7 +3734,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         if self.registers.zero_flag == 0:
             return self._op_cd()
@@ -3520,7 +3749,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self.registers.sp = (self.registers.sp - 2) & 0xffff
         self.mmu.write_byte(self.registers.sp, self.registers.c)
@@ -3537,7 +3767,8 @@ class Cpu(object):
         N - Reset to zero
         H - Set if carry from bit 3.
         C - Set if carry from bit 7.
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._add(self.mmu.read_byte(self.registers.pc))
         self.registers.pc += 1
@@ -3551,7 +3782,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         self._rst(0x0)
         return 16
@@ -3563,8 +3795,10 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
+        #TODO: not implemented correctly
         if self.registers.zero_flag:
             return self._op_c9() + 4
         return 8
@@ -3576,7 +3810,8 @@ class Cpu(object):
 
         Flags affected:
         None
-        :return:
+        :return int:
+            number of clock cycles that occur
         """
         low = self.mmu.read_byte(self.registers.sp)
         high = self.mmu.read_byte(self.registers.sp + 1)
