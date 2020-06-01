@@ -34,12 +34,17 @@ class GPU(object):
 
     def step(self, clock_ticks):
         """
+        Single GPU drawing step.
+
         Essentially this should be called after every opcode to update where the
         GPU is in drawing the screen.
         Each instruction carries a gpu cycle count with it, and that change gets
         reconputed here. Depending on what stage you are in, this may call the
         screen to be redrawn (basically when we hit v-blank)
-        :param clock_ticks:
+
+        Parameters
+        ----------
+        clock_ticks : int
             cpu ticks required for given step, provided by operation
         """
 
@@ -80,8 +85,10 @@ class GPU(object):
                     self.mode = 2
                     self.line = 0
 
-
     def update(self, data, addr):
+        """
+        #TODO: finish function
+        """
         # print('addr: ', addr)
         # print('data: ', data)
         # print(self.display.get_region(x, y, 1, 1).get_image_data())
@@ -91,7 +98,8 @@ class GPU(object):
         self.display.blit(0, 0)
 
     def __str__(self):
-        return """GPU Mode: %d  Mode Clock: %d  Line: %3d (%02x)""" % (self.mode, self.mode_clock, self.line, self.line)
+        return """GPU Mode: %d  Mode Clock: %d  Line: %3d (%02x)""" %
+                (self.mode, self.mode_clock, self.line, self.line)
 
     def reset(self):
         """
