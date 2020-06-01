@@ -50,8 +50,7 @@ class MMU(object):
 
     def reset(self):
         """
-        Resets memory to initial values
-        :return:
+        Resets memory to initial values.
         """
         self.ram = []
         self.wram = [0] * 0x2000
@@ -63,7 +62,10 @@ class MMU(object):
     def load(self, rom_path):
         """
         Loads the rom at the given rom_path into local memory.
-        :param rom_path:
+
+        Parameters
+        ----------
+        rom_path : String
             Path on system to inteded ROM to load
         """
         self.reset()
@@ -74,9 +76,12 @@ class MMU(object):
     def write_byte(self, addr, value):
         """
         Writes a byte (8 bit) value to the address specified.
-        :param addr:
-            Address in memory (size 0xFFFF)
-        :param value:
+
+        Parameters
+        ----------
+        addr : int (0xFFFF)
+            Address in memory
+        value : int
             8 bit value to be written to memory
         """
         if addr >= 0xff80:
@@ -121,8 +126,13 @@ class MMU(object):
     def write_word(self, addr, value):
         """
         Writes a word (16 bit) value to the address specified.
-        :param addr:
-        :param value:
+
+        Parameters
+        ----------
+        addr : int (0xFFFF)
+            Address in memory
+        value : int
+            Byte of data to write
         """
         self.write_byte(addr, value & 0xff)
         self.write_byte(addr + 1, value >> 8)
@@ -130,9 +140,15 @@ class MMU(object):
     def read_byte(self, addr):
         """
         Reads a single 8 bit value from the address specified.
-        :param addr:
-            Address of size 0xFFFF
-        :return:
+
+        Parameters
+        ----------
+        addr : int (0xFFFF)
+            Address in memory
+
+        Returns
+        -------
+        int
             byte of data at memory location addr
         """
         if addr >= 0xff80:
@@ -177,9 +193,15 @@ class MMU(object):
     def read_word(self, addr):
         """
         Reads a 16 bit word value from the address specified.
-        :param addr:
-            address of size 0xFFFF
-        :return:
-            word (2 bytes) data at location addr in memory
+
+        Parameters
+        ----------
+        addr : int (0xFFFF)
+            Address in memory
+
+        Returns
+        -------
+        int : word (2 bytes)
+            data at location addr in memory
         """
         return self.read_byte(addr) + (self.read_byte(addr + 1) << 8)
